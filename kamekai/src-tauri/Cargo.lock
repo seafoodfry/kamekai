@@ -1877,6 +1877,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kamekai"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+]
+
+[[package]]
 name = "keyboard-types"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1885,17 +1896,6 @@ dependencies = [
  "bitflags 2.6.0",
  "serde",
  "unicode-segmentation",
-]
-
-[[package]]
-name = "kirin"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
 ]
 
 [[package]]

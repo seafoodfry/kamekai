@@ -1,7 +1,6 @@
-# kirin
+# kamekai
 
-Kirin (麒麟) - A simple tool for immersing yourself in Japanese and Chinese. Just as the mythological Kirin appears to the worthy and brings enlightenment, this app aims to make language immersion accessible and enriching.
-
+Kamekai is an interactive tool for immersing yourself in Japanese and Chinese.
 
 ## Setup
 
@@ -28,13 +27,13 @@ cargo install create-tauri-app --locked
 
 And create a project:
 ```
-cargo create-tauri-app kirin
+cargo create-tauri-app kamekai
 ```
 
 We used the following configuratoin:
 ```
-➜  ~/src/github.com/seafoodfry/kirin git:(init) cargo create-tauri-app kirin
-✔ Identifier · com.kirin.app
+➜  ~/src/github.com/seafoodfry/kamekai git:(init) cargo create-tauri-app kamekai
+✔ Identifier · com.kamekai.app
 ✔ Choose which language to use for your frontend · TypeScript / JavaScript - (pnpm, yarn, npm, deno, bun)
 ✔ Choose your package manager · pnpm
 ✔ Choose your UI template · React - (https://react.dev/)
@@ -48,7 +47,7 @@ Your system is missing dependencies (or they do not exist in $PATH):
 ╰─────────┴───────────────────────────╯
 
 Make sure you have installed the prerequisites for your OS: https://tauri.app/start/prerequisites/, then run:
-  cd kirin
+  cd kamekai
   pnpm install
   pnpm tauri android init
   pnpm tauri ios init
@@ -81,7 +80,7 @@ Note that we are using
 [pnpm: the fast, disk space efficient package manager](https://pnpm.io/).
 To install it run:
 ```
-cd kirin
+cd kamekai
 corepack enable pnpm
 ```
 
@@ -113,14 +112,15 @@ pnpm tauri dev
 
 ### Shadcn/ui
 
-[ui.shadcn installation/vite](https://ui.shadcn.com/docs/installation/vite)
+The instructions we followed are based on
+[ui.shadcn installation/vite](https://ui.shadcn.com/docs/installation/vite).
 
 ```
 pnpm add -D tailwindcss postcss autoprefixer  # Save package to your `devDependencies`
 pnpm dlx tailwindcss init -p                  # Creates tailwind.config.js and postcss.config.js
 ```
 
-Added the following to [kirin/src/App.css](./kirin/src/App.css):
+Added the following to [kamekai/src/App.css](./kamekai/src/App.css):
 ```css
 @tailwind base;
 @tailwind components;
@@ -129,20 +129,24 @@ Added the following to [kirin/src/App.css](./kirin/src/App.css):
 
 We added `"./index.html", "./src/**/*.{ts,tsx,js,jsx}"` to the `content` field in `tailwind.config.js`.
 
+And we added the following snippet to `tsconfig.json` and `tsconfig.node.json`:
 ```json
     /* Shadcn/ui changes as per https://ui.shadcn.com/docs/installation/vite */
     "baseUrl": ".",
     "paths": {
-        "@/*": ["./src/*"]
+      "@/*": ["./src/*"]
     }
 ```
 
+We ran the following:
 ```
 pnpm add -D @types/node
 ```
 
+And added this to `vite.config.ts`:
 ```ts
 import path from "path"
+
 export default defineConfig(async () => ({
   plugins: [react()],
   
@@ -192,6 +196,10 @@ CSS variables for theming:
 
 These values are registered in `components.json`.
 
+
+At this point, we updated the styling of the app to use Tailwindcss and Shadcnui.
+
+We added these components:
 ```
 pnpm dlx shadcn@latest add input button
 ```
