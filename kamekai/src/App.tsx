@@ -1,12 +1,11 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { TextProcessing } from "./pages/TextProcessing";
-import "./App.css";
-
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { TextProcessing } from './pages/TextProcessing';
+import './App.css';
 
 function App() {
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [showProcessing, setShowProcessing] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -18,8 +17,8 @@ function App() {
 
   const handleBack = () => {
     setShowProcessing(false);
-    setInputText("");
-  }
+    setInputText('');
+  };
 
   if (showProcessing) {
     return <TextProcessing text={inputText} onBack={handleBack} />;
@@ -35,20 +34,16 @@ function App() {
         <form className="flex justify-center gap-4" onSubmit={handleSubmit}>
           <Input
             value={inputText}
-            onChange={(e) => setInputText(e.currentTarget.value)}
+            onChange={e => setInputText(e.currentTarget.value)}
             placeholder="Enter text..."
             className="max-w-[400px] bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-400 rounded-xl focus-visible:ring-blue-500"
           />
-          <Button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
-          >
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
             Process
           </Button>
         </form>
-
-    </main>
-  </div>
+      </main>
+    </div>
   );
 }
 

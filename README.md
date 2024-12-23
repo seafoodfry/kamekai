@@ -321,3 +321,13 @@ adjust the roundness by using different values:
 ```
 pnpm dlx shadcn@latest add card
 ```
+
+---
+## Formatting
+
+We followed the instructions from
+[prettier.io/install](https://prettier.io/docs/en/install)
+```
+pnpm add --save-dev --save-exact prettier
+```
+And customized the behaviour by adding `.prettierrc` and `.pretierignore` files.
