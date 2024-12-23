@@ -331,3 +331,63 @@ We followed the instructions from
 pnpm add --save-dev --save-exact prettier
 ```
 And customized the behaviour by adding `.prettierrc` and `.pretierignore` files.
+
+For eslint, we followed
+[eslint.org/getting-started](https://eslint.org/docs/latest/use/getting-started):
+
+```
+$ pnpm create @eslint/config@latest
+.../193f4738785-3959                     |  +11 +
+.../193f4738785-3959                     | Progress: resolved 11, reused 8, downloaded 3, added 11, done
+@eslint/create-config: v1.4.0
+
+✔ How would you like to use ESLint? · problems
+✔ What type of modules does your project use? · esm
+✔ Which framework does your project use? · react
+✔ Does your project use TypeScript? · typescript
+✔ Where does your code run? · browser, node  # Toggle <a> !
+The config that you've selected requires the following dependencies:
+
+eslint, globals, @eslint/js, typescript-eslint, eslint-plugin-react
+✔ Would you like to install them now? · No / **Yes**
+✔ Which package manager do you want to use? · pnpm
+☕️Installing...
+Packages: +180
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 410, reused 186, downloaded 174, added 180, done
+
+devDependencies:
++ @eslint/js 9.17.0
++ eslint 9.17.0
++ eslint-plugin-react 7.37.2
++ globals 15.14.0
++ typescript-eslint 8.18.1
+
+Done in 3.3s
+Successfully created ~/go/src/github.com/seafoodfry/kamekai/kamekai/eslint.config.js file.
+```
+
+This threw some errors such as
+```
+error  'React' must be in scope when using JSX  react/react-in-jsx-scope
+```
+and also complained about shadcnui components.
+
+To fix it, we installed:
+```
+pnpm add -D eslint-plugin-react-hooks eslint-config-prettier
+```
+
+and updated the default `eslint.config.js` file.
+
+A few notes about the configuration:
+
+1. We turned off 'react/react-in-jsx-scope' because it's not needed with React 17+ (which we are using)
+1. We turned off 'react/prop-types' because we are using TypeScript for type checking
+1. We added 'react-hooks' plugin for hooks-related linting rules
+1. The shadcn/ui components are properly handled as they use TypeScript for type checking
+
+For the errors we saw:
+
+1. The React import errors went away with this configuration
+1. The prop-types errors for the Input component will be handled by TypeScript instead
