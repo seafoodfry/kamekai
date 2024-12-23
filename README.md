@@ -191,3 +191,117 @@ CSS variables for theming:
 1. The only downside is a tiny bit more setup, but shadcn-ui handles most of that for you. The benefits for a language learning app where visual differentiation might be important definitely outweigh any minimal setup cost.
 
 These values are registered in `components.json`.
+
+```
+pnpm dlx shadcn@latest add input button
+```
+
+```js
+<div className="min-h-screen bg-[#1E1E1E] text-white flex flex-col items-center justify-start">
+```
+
+- `min-h-screen`: Makes the div at least as tall as the viewport (100vh)
+- `bg-[#1E1E1E]`: Sets a dark background color (using a custom hex value)
+- `text-white`: Sets text color to white
+- `flex`: Makes it a flex container
+- `flex-col`: Sets flex direction to column (stacks children vertically)
+- `items-center`: Centers children horizontally (cross-axis alignment)
+- `justify-start`: Aligns children to the start vertically (main-axis alignment)
+
+```js
+<main className="w-full max-w-3xl px-4 py-24 text-center">
+```
+
+- `w-full`: Width 100% of parent
+- `max-w-3xl`: Maximum width of 48rem (768px)
+- `px-4`: Padding left and right of 1rem (16px)
+- `py-24`: Padding top and bottom of 6rem (96px)
+- `text-center`: Centers text content
+
+```js
+<h1 className="text-5xl font-bold mb-20">
+```
+
+- `text-5xl`: Font size of 3rem (48px)
+- `font-bold`: Font weight of 700
+- `mb-20`: Margin bottom of 5rem (80px)
+
+```js
+<div className="flex justify-center items-center space-x-8 mb-20">
+```
+
+- `flex`: Makes it a flex container
+- `justify-center`: Centers children horizontally
+- `items-center`: Centers children vertically
+- `space-x-8`: Adds 2rem (32px) spacing between children horizontally
+- `mb-20`: Margin bottom of 5rem (80px)
+
+
+```js
+<a className="hover:scale-110 transition-transform">
+```
+
+- `hover:scale-110`: On hover, scales the element to 110% of its size
+- `transition-transform`: Makes the scale transformation smooth`
+
+```js
+<img className="logo vite w-32 h-32">
+```
+
+- `logo`: Custom class (defined in CSS)
+- `w-32`: Width of 8rem (128px)
+- `h-32`: Height of 8rem (128px)
+
+```js
+<form className="flex justify-center gap-4"/>
+```
+
+- `gap-4`: adds spacing between elements in a flex or grid container. 4 units in Tailwind's spacing scale, which equals 1rem or 16px.
+
+```js
+className="max-w-[240px] bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-400 rounded-xl focus-visible:ring-blue-500"
+```
+
+- `max-w-[240px]`: Sets a maximum width of 240 pixels
+    - The square brackets `[]` allow you to use custom values instead of Tailwind's default scale
+Without brackets, you'd use predefined values like `max-w-sm` or `max-w-md`
+- `bg-[#2F2F2F]`: Sets the background color to a dark gray
+    - Again using square brackets for a custom hex color
+    - Could use Tailwind's built-in colors like `bg-gray-800` instead
+- `border-gray-600`: Sets the border color to gray
+    - Uses Tailwind's gray color scale (from 50 to 900)
+    - 600 is a medium-dark gray
+- `text-white`: Makes the text color white
+- `placeholder-gray-400`: Sets the placeholder text color to a light gray
+    - Only affects the placeholder text ("Enter a name...")
+    - 400 is a lighter shade in the gray scale
+- `rounded-xl`: Makes the corners rounded
+    - xl means "extra large" corner radius
+    - You could use `rounded-lg` (large), `rounded-md` (medium), etc.
+- `focus-visible:ring-blue-500`: When the input is focused
+    - `focus-visible`: is a state modifier that applies styles when the element is focused
+    - `ring-blue-500` adds a blue outline ring
+    - 500 is a medium shade of blue
+
+```js
+<p className="text-xl mt-8">{greetMsg}</p>
+```
+
+- `mt-8` in Tailwind CSS means "margin top" with a size of 8 units in Tailwind's spacing scale.
+
+The sizing system in Tailwind works in multiples of 4 pixels by default:
+
+4 = 1rem (16px)
+8 = 2rem (32px)
+16 = 4rem (64px)
+20 = 5rem (80px)
+24 = 6rem (96px)
+32 = 8rem (128px)
+
+adjust the roundness by using different values:
+
+- `rounded` for slight rounding
+- `rounded-lg` for more rounding
+- `rounded-xl` for even more rounding
+- `rounded-2xl` for very round corners
+- `rounded-full` for fully rounded (pill shape)
