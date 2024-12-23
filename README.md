@@ -2,15 +2,15 @@
 
 Kamekai is an interactive tool for immersing yourself in Japanese and Chinese.
 
-## Setup
+# Setup
 
 For UI components:
 
 1. TailwindCSS for styling (utility-first CSS framework)
 1. shadcn/ui for pre-built components (looks modern, highly customizable)
 
-
-### Tauri
+---
+## Tauri
 
 
 [Tauri](https://v2.tauri.app/start/)
@@ -110,7 +110,8 @@ And at this point you should be able to run
 pnpm tauri dev
 ```
 
-### Shadcn/ui
+---
+## Shadcn/ui
 
 The instructions we followed are based on
 [ui.shadcn installation/vite](https://ui.shadcn.com/docs/installation/vite).
@@ -313,3 +314,10 @@ adjust the roundness by using different values:
 - `rounded-xl` for even more rounding
 - `rounded-2xl` for very round corners
 - `rounded-full` for fully rounded (pill shape)
+
+---
+## Text Processing View
+
+```
+pnpm dlx shadcn@latest add card
+```
