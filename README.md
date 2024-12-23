@@ -11,6 +11,8 @@ For UI components:
 1. shadcn/ui for pre-built components (looks modern, highly customizable)
 
 
+### Tauri
+
 
 [Tauri](https://v2.tauri.app/start/)
 
@@ -108,3 +110,84 @@ And at this point you should be able to run
 ```
 pnpm tauri dev
 ```
+
+### Shadcn/ui
+
+[ui.shadcn installation/vite](https://ui.shadcn.com/docs/installation/vite)
+
+```
+pnpm add -D tailwindcss postcss autoprefixer  # Save package to your `devDependencies`
+pnpm dlx tailwindcss init -p                  # Creates tailwind.config.js and postcss.config.js
+```
+
+Added the following to [kirin/src/App.css](./kirin/src/App.css):
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+We added `"./index.html", "./src/**/*.{ts,tsx,js,jsx}"` to the `content` field in `tailwind.config.js`.
+
+```json
+    /* Shadcn/ui changes as per https://ui.shadcn.com/docs/installation/vite */
+    "baseUrl": ".",
+    "paths": {
+        "@/*": ["./src/*"]
+    }
+```
+
+```
+pnpm add -D @types/node
+```
+
+```ts
+import path from "path"
+export default defineConfig(async () => ({
+  plugins: [react()],
+  
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+
+  ...
+}));
+```
+
+When running `pnpm dlx shadcn@latest init`:
+
+```
+...
+✔ Which style would you like to use? › Default
+✔ Which color would you like to use as the base color? › Slate
+✔ Would you like to use CSS variables for theming? … no / yes
+...
+```
+
+The Default style:
+
+1. Has better readability and contrast - important for a language learning app where users will be reading a lot of text.
+1. Uses more neutral colors that won't compete with any text highlighting or language-specific features you might add later
+1. Is slightly more minimalist, which helps keep focus on the content
+1. Has been tested more extensively as it's the original style
+1. The New York style is more decorative and has some nice flourishes, but for an app focused on language learning, the 1. Default style's clarity would be more beneficial.
+
+Slate provides excellent contrast for text readability, which is crucial for your app
+
+1. It has a slightly cooler tone that's easy on the eyes during long reading sessions
+1. It works well with both light and dark modes
+1. It provides enough visual hierarchy without being too stark (like Gray) or too warm (like Stone)
+1. The differences between these colors are subtle, but Slate tends to be the most versatile and comfortable for text-heavy applications. It's also commonly used in modern documentation sites and educational platforms.
+
+CSS variables for theming:
+
+1. It will make theme customization much easier - users might want different themes for Chinese vs Japanese content
+1. CSS variables make it easier to implement dark/light mode switching
+1. You can dynamically change colors with JavaScript if needed (useful for highlighting or emphasis in language learning)
+1. It's more maintainable - you can update colors in one place instead of throughout your styles
+1. Better performance compared to utility class changes for theming
+1. The only downside is a tiny bit more setup, but shadcn-ui handles most of that for you. The benefits for a language learning app where visual differentiation might be important definitely outweigh any minimal setup cost.
+
+These values are registered in `components.json`.
