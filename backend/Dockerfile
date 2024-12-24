@@ -20,7 +20,8 @@ RUN cargo build
 
 # And finally copy the source for the Rust program.
 COPY ./src /src/${APP_NAME}/src/
-RUN cargo build --release
+# Run all the build modes so that we have them available in the debug container.
+RUN cargo build && cargo build --release
 
 ##############
 # Distroless #
