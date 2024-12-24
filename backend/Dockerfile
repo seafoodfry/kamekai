@@ -25,8 +25,8 @@ RUN cargo build --release
 ##############
 # Distroless #
 ##############
-# # https://github.com/GoogleContainerTools/distroless
-FROM gcr.io/distroless/python3-debian12 AS prod
+# https://github.com/GoogleContainerTools/distroless
+FROM gcr.io/distroless/cc-debian12 AS prod
 
 # Create the same user in distroless.
 ARG NB_USER="jovyan"
@@ -34,6 +34,7 @@ ARG NB_UID="1000"
 ARG NB_GID="100"
 
 # Copy from the exact path used in builder.
+WORKDIR /app
 COPY --from=builder --chown=${NB_UID}:${NB_GID} /src/backend/target/release/backend /app/backend
 
 # Switch to non-root user.

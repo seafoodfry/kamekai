@@ -17,7 +17,7 @@ help:  ## Display this help message
 
 ##@ Local Development.
 .PHONY: build-dev
-build-dev:  ## Build the dev container image
+build-dev: qa ## Build the dev container image
 	docker build --target builder -t $(IMG)-dev .
 
 .PHONY: debug
@@ -25,7 +25,7 @@ debug: build-dev  ## Run the dev container
 	./run-cmd-in-shell.sh docker run -it $(CONTAINER_OPTS) $(IMG)-dev bash
 
 .PHONY: build
-build:  ## Build the prod container image
+build: qa ## Build the prod container image
 	docker build -t $(IMG) .
 
 .PHONY: run
