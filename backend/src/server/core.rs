@@ -97,17 +97,9 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
         .route("/translate", post(handle_translate))
         .route("/health", get(handle_health))
         .layer(TimeoutLayer::new(Duration::from_secs(30)))
-        // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
-        // It provides good defaults but is also very customizable.
-        //
-        // See https://docs.rs/tower-http/0.1.1/tower_http/trace/index.html for more details.
-        //
-        // If you want to customize the behavior using closures here is how.
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {
-                    // Log the matched route's path (with placeholders not filled in).
-                    // Use request.uri() or OriginalUri if you want the real path.
                     let matched_path = request
                         .extensions()
                         .get::<MatchedPath>()
@@ -118,17 +110,29 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
                         .get::<ConnectInfo<SocketAddr>>()
                         .map(|connect_info| connect_info.0.to_string());
 
+                    let headers: Vec<(String, String)> = request
+                        .headers()
+                        .iter()
+                        .map(|(key, value)| {
+                            (
+                                key.as_str().to_owned(),
+                                value.to_str().unwrap_or("invalid").to_owned(),
+                            )
+                        })
+                        .collect();
+
                     info_span!(
-                                        "http_request",
-                                        method = ?request.method(),
-                                        path = %request.uri().path(),
-                                        matched_path,
-                                        client_ip = client_ip.as_deref(),
-                                        response.status = tracing::field::Empty,
-                    response.size = tracing::field::Empty,
-                    response.content_type = tracing::field::Empty,
-                    response.latency = tracing::field::Empty,
-                                    )
+                        "http_request",
+                        method = ?request.method(),
+                        path = %request.uri().path(),
+                        matched_path,
+                        client_ip = client_ip.as_deref(),
+                        headers = ?headers,
+                        response.status = tracing::field::Empty,
+                        response.size = tracing::field::Empty,
+                        response.content_type = tracing::field::Empty,
+                        response.latency = tracing::field::Empty,
+                    )
                 })
                 .on_response(|response: &Response, latency: Duration, span: &Span| {
                     let size = response
@@ -156,24 +160,18 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
                         parent: span,
                         "finished processing request"
                     );
-
-                    // Just for show.
-                    tracing::info!(
-                        status = ?response.status(),
-                        latency = ?latency,
-                        size_bytes = size,
-                        content_type = content_type,
-                        "finished processing request"
-                    );
                 }),
         );
 
     let addr = format!("{}:{}", host, port);
     let listener = TcpListener::bind(addr).await?;
     tracing::debug!("listening on {}", listener.local_addr()?);
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
 
     Ok(())
 }
