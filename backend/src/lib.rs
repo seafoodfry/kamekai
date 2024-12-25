@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use chrono::Local;
 
 pub mod aws;
@@ -6,28 +7,18 @@ pub mod error;
 pub mod language;
 pub mod server;
 
-// Re-export the most commonly used types and functions ("convenient imports").
-// Rustaceans do it. You can do it too.
 pub use conversation::builder::ConversationBuilder;
 pub use error::AppError;
 pub use language::Language;
 
-pub const AWS_REGION: &str = "us-east-1";
-
 // High-level function that encapsulates the main conversation flow.
-pub async fn create_conversation(language: Language) -> Result<String, AppError> {
-    let sdk_config = aws_config::defaults(aws_config::BehaviorVersion::v2024_03_28())
-        .region(AWS_REGION)
-        .load()
-        .await;
-    let client = aws_sdk_bedrockruntime::Client::new(&sdk_config);
-
-    // Figure out what inference profile to use.
-    let aws_account_id = aws::sts::get_aws_account_id(&sdk_config).await?;
-    let aws_inference_profile = format!(
-        "arn:aws:bedrock:us-east-1:{}:inference-profile/us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-        aws_account_id
-    );
+pub async fn create_conversation(language: Language) -> Result<String> {
+    // Initialize the AWS client.
+    let aws_client = aws::AWSClient::new(Some(aws::InferenceParameters {
+        temperature: 0.8,
+        max_tokens: 1024,
+        top_p: 0.95,
+    }));
 
     // Generate the prompt.
     let greeting = language.get_greeting();
@@ -63,7 +54,11 @@ pub async fn create_conversation(language: Language) -> Result<String, AppError>
             language,
         ))
         .add_user_message(enriched_prompt)
-        .build()?;
+        .build()
+        .context("Error creating messages for AWS Bedrock")?;
 
-    aws::bedrock::send_conversation(&client, &aws_inference_profile, vec![message]).await
+    aws_client
+        .create_conversation(vec![message])
+        .await
+        .context("Error creating conversation with AWS Bedrock")
 }
