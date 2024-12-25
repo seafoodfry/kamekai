@@ -38,10 +38,15 @@ run: build  ## Run the prod container
 .PHONY: update
 update:  ## Update project dependencies
 	cargo update
+	rustup component add clippy
 
 .PHONY: fmt
 fmt:  ## Format code
 	rustfmt -l src/*.rs
+
+.PHONY: lint
+lint:  ## Lint code
+	cargo clippy
 
 .PHONY: test
 test:  ## Run tests
@@ -53,14 +58,13 @@ security:  ## Run security checks
 
 
 ##@ Quality Assurance.
-.PHONY: qa
-qa: fmt test security  ## Run all quality assurance checks
-
-
 .PHONY: qa-test
-qa-test: test security  ## Run all quality assurance checks except for fmt (mean for CI)
+qa-test: lint test security  ## Run all quality assurance checks except for fmt (mean for CI)
+	cargo build
 
-
+.PHONY: qa
+qa: fmt qa-test  ## Run all quality assurance checks
+	@echo "QA checks passed"
 
 ##@ Development Cleanup.
 .PHONY: clean
