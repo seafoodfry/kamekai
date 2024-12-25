@@ -41,4 +41,4 @@ COPY --from=builder --chown=${NB_UID}:${NB_GID} /src/backend/target/release/back
 # Switch to non-root user.
 USER ${NB_UID}
 
-CMD ["/app/backend"]
+CMD ["/app/backend", "lesson", "-l", "japanese"]
