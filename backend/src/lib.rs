@@ -4,6 +4,7 @@ pub mod aws;
 pub mod conversation;
 pub mod error;
 pub mod language;
+pub mod server;
 
 // Re-export the most commonly used types and functions ("convenient imports").
 // Rustaceans do it. You can do it too.

@@ -1,5 +1,6 @@
 IMG := kamekai-backend
 CONTAINER_OPTS := --rm \
+	-p 8080:8080 \
 	-e OTEL_SERVICE_NAME="kamekai-backend" \
 	-e OTEL_EXPORTER_OTLP_ENDPOINT="https://api.honeycomb.io" \
 	-e OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf" \
