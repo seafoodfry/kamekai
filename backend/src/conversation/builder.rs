@@ -7,6 +7,12 @@ pub struct ConversationBuilder {
     conversation_history: Vec<String>,
 }
 
+impl Default for ConversationBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConversationBuilder {
     pub fn new() -> Self {
         Self {

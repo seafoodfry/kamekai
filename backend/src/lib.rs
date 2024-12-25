@@ -59,7 +59,7 @@ pub async fn create_conversation(language: Language) -> Result<String, AppError>
             Sometimes focus on casual speech, sometimes on formal language. \
             Include both basic and advanced concepts.
             And keep in mind that your response will finalize the lesson, the use will not reply.",
-            language.to_string(),
+            language,
         ))
         .add_user_message(enriched_prompt)
         .build()?;
