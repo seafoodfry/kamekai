@@ -152,7 +152,7 @@ impl TranslationResponseBuilder {
     }
 }
 
-// Add convenient builder creation methods to our main types
+// Add convenient builder creation methods to our main types.
 impl LanguageTranslation {
     pub fn builder() -> LanguageTranslationBuilder {
         LanguageTranslationBuilder::new()
@@ -169,4 +169,9 @@ impl TranslationResponse {
     pub fn builder() -> TranslationResponseBuilder {
         TranslationResponseBuilder::new()
     }
+}
+
+#[derive(serde::Deserialize)]
+pub struct TranslationRequest {
+    pub text: String,
 }

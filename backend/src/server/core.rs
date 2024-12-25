@@ -1,72 +1,179 @@
-use http_body_util::Full;
-use hyper::body::Bytes;
-use hyper::server::conn::http1;
-use hyper::service::service_fn;
-use hyper::{Request, Response};
-use hyper_util::rt::TokioIo;
+use axum::{
+    extract::{ConnectInfo, MatchedPath},
+    http::{header, Request},
+    response::Response,
+    routing::{get, post},
+    Router,
+};
+use std::{net::SocketAddr, time::Duration};
 use tokio::net::TcpListener;
+use tokio::signal;
+use tower_http::trace::TraceLayer;
+//use tower_timeout::TimeoutLayer;
+use tower_http::timeout::TimeoutLayer;
+use tracing::{info_span, Span};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::handlers::{handle_not_found, handle_translate};
-use super::middleware::log_request;
+use super::handlers::{handle_health, handle_translate};
 
-// // The executor is essential for HTTP/2's concurrent stream handling.
-// // It determines how the server manages multiple streams within a single connection.
-// #[derive(Clone)]
-// struct TokioExecutor;
-
-// impl<F> hyper::rt::Executor<F> for TokioExecutor
-// where
-//     F: std::future::Future + Send + 'static,
-//     F::Output: Send + 'static,
-// {
-//     fn execute(&self, fut: F) {
-//         tokio::task::spawn(fut);
-//     }
-// }
-
-async fn handle_request(
-    req: Request<hyper::body::Incoming>,
-    client_addr: std::net::SocketAddr,
-) -> Result<Response<Full<Bytes>>, hyper::Error> {
-    let req = log_request(req, client_addr).await;
-
-    // Since both handlers return Result<Response, Infallible>, we need to convert
-    // the Result type to match our function's return type
-    match (req.method(), req.uri().path()) {
-        (&hyper::Method::POST, "/translate") => {
-            // Convert Result<Response, Infallible> to Result<Response, hyper::Error>
-            // We can safely map_err here because Infallible can never actually occur
-            handle_translate(req)
-                .await
-                .map_err(|infallible| match infallible {})
-        }
-        _ => handle_not_found(req)
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
             .await
-            .map_err(|infallible| match infallible {}),
-    }
+            .expect("failed to install Ctrl+C handler");
+        println!("Received Ctrl+C signal");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+        println!("Received SIGTERM signal");
+    };
+
+    #[cfg(unix)]
+    let quit = async {
+        signal::unix::signal(signal::unix::SignalKind::quit())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+        println!("Received SIGQUIT signal");
+    };
+
+    #[cfg(unix)]
+    let interrupt = async {
+        signal::unix::signal(signal::unix::SignalKind::interrupt())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+        println!("Received SIGINT signal");
+    };
+
+    #[cfg(unix)]
+    let hangup = async {
+        signal::unix::signal(signal::unix::SignalKind::hangup())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+        println!("Received SIGHUP signal");
+    };
+
+    #[cfg(unix)]
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+        _ = quit => {},
+        _ = interrupt => {},
+        _ = hangup => {},
+    };
+
+    #[cfg(not(unix))]
+    ctrl_c.await;
+
+    println!("Shutting down gracefully...");
 }
 
-// Our streamlined server implementation focused on HTTP/2.
 pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize tracing.
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                format!(
+                    "{}=debug,tower_http=debug,axum::rejection=trace",
+                    env!("CARGO_CRATE_NAME")
+                )
+                .into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    // build our application with our routes.
+    let app = Router::new()
+        .route("/translate", post(handle_translate))
+        .route("/health", get(handle_health))
+        .layer(TimeoutLayer::new(Duration::from_secs(30)))
+        // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
+        // It provides good defaults but is also very customizable.
+        //
+        // See https://docs.rs/tower-http/0.1.1/tower_http/trace/index.html for more details.
+        //
+        // If you want to customize the behavior using closures here is how.
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &Request<_>| {
+                    // Log the matched route's path (with placeholders not filled in).
+                    // Use request.uri() or OriginalUri if you want the real path.
+                    let matched_path = request
+                        .extensions()
+                        .get::<MatchedPath>()
+                        .map(MatchedPath::as_str);
+
+                    let client_ip = request
+                        .extensions()
+                        .get::<ConnectInfo<SocketAddr>>()
+                        .map(|connect_info| connect_info.0.to_string());
+
+                    info_span!(
+                                        "http_request",
+                                        method = ?request.method(),
+                                        path = %request.uri().path(),
+                                        matched_path,
+                                        client_ip = client_ip.as_deref(),
+                                        response.status = tracing::field::Empty,
+                    response.size = tracing::field::Empty,
+                    response.content_type = tracing::field::Empty,
+                    response.latency = tracing::field::Empty,
+                                    )
+                })
+                .on_response(|response: &Response, latency: Duration, span: &Span| {
+                    let size = response
+                        .headers()
+                        .get(header::CONTENT_LENGTH)
+                        .and_then(|v| v.to_str().ok())
+                        .and_then(|v| v.parse::<usize>().ok())
+                        .unwrap_or(0);
+
+                    let content_type = response
+                        .headers()
+                        .get(header::CONTENT_TYPE)
+                        .and_then(|v| v.to_str().ok())
+                        .unwrap_or("unknown");
+
+                    span.record(
+                        "response.status",
+                        tracing::field::display(response.status()),
+                    );
+                    span.record("response.size", size);
+                    span.record("response.content_type", content_type);
+                    span.record("response.latency_ms", latency.as_millis());
+
+                    tracing::info!(
+                        parent: span,
+                        "finished processing request"
+                    );
+
+                    // Just for show.
+                    tracing::info!(
+                        status = ?response.status(),
+                        latency = ?latency,
+                        size_bytes = size,
+                        content_type = content_type,
+                        "finished processing request"
+                    );
+                }),
+        );
+
     let addr = format!("{}:{}", host, port);
-    let listener = TcpListener::bind(&addr).await?;
-    println!("HTTP/2 server running on http://{}", addr);
+    let listener = TcpListener::bind(addr).await?;
+    tracing::debug!("listening on {}", listener.local_addr()?);
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
-    loop {
-        let (stream, client_addr) = listener.accept().await?;
-        println!("New connection from: {}", client_addr);
-
-        let io = TokioIo::new(stream);
-
-        // Configure and spawn HTTP/2 connection handler.
-        tokio::task::spawn(async move {
-            // For http2: http2::Builder::new(TokioExecutor)
-            if let Err(err) = http1::Builder::new()
-                .serve_connection(io, service_fn(move |req| handle_request(req, client_addr)))
-                .await
-            {
-                eprintln!("Error serving connection from {}: {:?}", client_addr, err);
-            }
-        });
-    }
+    Ok(())
 }
