@@ -1,3 +1,5 @@
+use axum::http::header::CONTENT_TYPE;
+use axum::http::Method;
 use axum::{
     extract::{ConnectInfo, MatchedPath},
     http::{header, Request},
@@ -8,9 +10,9 @@ use axum::{
 use std::{net::SocketAddr, time::Duration};
 use tokio::net::TcpListener;
 use tokio::signal;
-use tower_http::trace::TraceLayer;
-//use tower_timeout::TimeoutLayer;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::timeout::TimeoutLayer;
+use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -93,9 +95,16 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
         .init();
 
     // build our application with our routes.
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::POST, Method::OPTIONS])
+        .allow_headers([CONTENT_TYPE])
+        .max_age(Duration::from_secs(3600));
+
     let app = Router::new()
         .route("/translate", post(handle_translate))
         .route("/health", get(handle_health))
+        .layer(cors) // Need to respond to preflight requests before other middleware interferes/changes headers.
         .layer(TimeoutLayer::new(Duration::from_secs(30)))
         .layer(
             TraceLayer::new_for_http()
