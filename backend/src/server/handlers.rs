@@ -16,10 +16,14 @@ pub async fn handle_health() -> impl IntoResponse {
 }
 
 pub async fn handle_translate(Json(payload): Json<TranslationRequest>) -> impl IntoResponse {
-    match create_translation_response(&payload.text) {
+    match process_translation(&payload.text).await {
         Ok(response) => (StatusCode::OK, Json(response)).into_response(),
         Err(e) => {
-            tracing::error!("Failed to create translation response: {}", e);
+            // Log the full error chain.
+            tracing::error!(
+                "Failed to process translation. Error chain: \n{:?}",
+                e.chain().collect::<Vec<_>>()
+            );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(json!({
@@ -31,8 +35,7 @@ pub async fn handle_translate(Json(payload): Json<TranslationRequest>) -> impl I
     }
 }
 
-#[allow(dead_code)]
-async fn process_translation(text: &str) -> Result<String> {
+async fn process_translation(text: &str) -> Result<TranslationResponse> {
     // Initialize the AWS client.
     let aws_client = aws::AWSClient::new(Some(aws::InferenceParameters {
         temperature: 0.8,
@@ -107,12 +110,19 @@ Your response should look like the following example:
     .build()
     .context("Error creating messages for AWS Bedrock")?;
 
-    aws_client
+    let output = aws_client
         .create_conversation(vec![message])
         .await
-        .context("Error creating conversation with AWS Bedrock")
+        .context("Error creating conversation with AWS Bedrock")?;
+
+    println!("Output:\n{}", output);
+    let response: TranslationResponse =
+        serde_json::from_str(&output).context("Error parsing Bedrock response")?;
+
+    Ok(response)
 }
 
+#[allow(dead_code)]
 fn create_translation_response(text: &str) -> Result<TranslationResponse, BuilderError> {
     let japanese_grammar = vec![
         "だから (dakara): 'That's why' or 'So.'",

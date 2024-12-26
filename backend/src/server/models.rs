@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
 
@@ -20,7 +20,7 @@ impl fmt::Display for BuilderError {
 impl Error for BuilderError {}
 
 // Field within an "example".
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Example {
     phrase: String,
     pronunciation: String,
@@ -68,7 +68,7 @@ impl ExampleBuilder {
 }
 
 // Field within a "language_translation" (japanese or chinese).
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LanguageTranslation {
     translation: String,
     pronunciation: String,
@@ -137,7 +137,7 @@ impl LanguageTranslationBuilder {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Translation {
     original: String,
     japanese: LanguageTranslation,
@@ -184,7 +184,7 @@ impl TranslationBuilder {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TranslationResponse {
     translations: Vec<Translation>,
 }

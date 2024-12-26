@@ -60,7 +60,8 @@ impl AWSClient {
         let aws_account_id = get_aws_account_id(&sdk_config)
             .await
             .context("Error getting AWS account ID")?;
-        let aws_inference_profile = format!("{} {}", INFERENCE_PROFILE_TEMPLATE, aws_account_id);
+        let aws_inference_profile = INFERENCE_PROFILE_TEMPLATE.replace("{}", &aws_account_id);
+        tracing::info!("Using inference profile: {}", aws_inference_profile);
 
         let inference_params = params.unwrap_or_default();
 
