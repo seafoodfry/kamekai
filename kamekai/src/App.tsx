@@ -1,22 +1,16 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TextProcessing } from './pages/TextProcessing';
-import { Loader2 } from 'lucide-react';
 import './App.css';
 
 function App() {
   const [inputText, setInputText] = useState('');
   const [showProcessing, setShowProcessing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputText.trim()) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setShowProcessing(true);
-      }, 20000);
+      setShowProcessing(true);
     }
   };
 
@@ -40,30 +34,20 @@ function App() {
           <textarea
             value={inputText}
             onChange={e => setInputText(e.target.value)}
-            placeholder="Enter text..."
-            className="w-full min-h-[40px] bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-400 rounded-xl focus-visible:ring-blue-500 p-2 resize-none overflow-hidden"
-            style={{ height: 'auto' }}
-            rows={1}
-            onInput={e => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = `${target.scrollHeight}px`;
+            placeholder="What do you want to learn today..."
+            className="w-full min-h-[100px] bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500 rounded-xl focus-visible:ring-blue-500 p-4 resize-none resize-y"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
             }}
           />
           <Button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl w-full"
-            disabled={isLoading}
           >
-            {' '}
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              'Process'
-            )}
+            Translate
           </Button>
         </form>
       </main>
