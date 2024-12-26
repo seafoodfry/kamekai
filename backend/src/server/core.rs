@@ -105,7 +105,7 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
         .route("/translate", post(handle_translate))
         .route("/health", get(handle_health))
         .layer(cors) // Need to respond to preflight requests before other middleware interferes/changes headers.
-        .layer(TimeoutLayer::new(Duration::from_secs(30)))
+        .layer(TimeoutLayer::new(Duration::from_secs(60)))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {

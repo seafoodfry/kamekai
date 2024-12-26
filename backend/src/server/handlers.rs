@@ -51,6 +51,8 @@ async fn process_translation(text: &str) -> Result<TranslationResponse> {
 Because you are the brains for an app, you need to respond in JSON format.
 The users will send you some text that you need to separate into sentences or phrases,
 and then translate them into Japanese and Chinese.
+When deciding how to break up the text, try to break it up into sentnece or phrases that an
+intermediate language learner would understand.
 If the text is in english then translate it to Japanese and Chinese.
 If the text is in Japanese, then only worry about translating it to Chinese.
 If the text is in Chinese, then only worry about translating it to Japanese.
