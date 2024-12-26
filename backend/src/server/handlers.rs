@@ -39,7 +39,7 @@ async fn process_translation(text: &str) -> Result<TranslationResponse> {
     // Initialize the AWS client.
     let aws_client = aws::AWSClient::new(Some(aws::InferenceParameters {
         temperature: 0.8,
-        max_tokens: 1024,
+        max_tokens: 4096,
         top_p: 0.95,
     }))
     .await
