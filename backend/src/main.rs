@@ -1,7 +1,5 @@
 use clap::{Parser, Subcommand};
 
-pub mod server;
-
 use backend::server::run_server;
 use backend::Language;
 use backend::{create_conversation, AppError};
@@ -38,13 +36,15 @@ enum Commands {
 async fn run(cli: Cli) -> Result<(), AppError> {
     match cli.command {
         Some(Commands::Lesson { language }) => {
-            let response = create_conversation(language).await?;
+            let response = create_conversation(language)
+                .await
+                .map_err(|e| AppError::Bedrock(format!("Failed to call bedrock: {:#?}", e)))?;
             println!("Claude's response:\n{}", response);
         }
         Some(Commands::Server { port, host }) => {
-            if let Err(e) = run_server(host, port).await {
-                eprintln!("Server error: {}", e);
-            }
+            run_server(host, port)
+                .await
+                .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
         }
         None => {
             println!("No subcommand provided. Run with the -h flag to see usage.");

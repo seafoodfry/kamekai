@@ -1,36 +1,87 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
 
 #[derive(Debug, Serialize)]
 pub enum BuilderError {
     MissingField(&'static str),
-    InvalidValue(&'static str),
+    //InvalidValue(&'static str),
 }
 
 impl fmt::Display for BuilderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BuilderError::MissingField(field) => write!(f, "Missing required field: {}", field),
-            BuilderError::InvalidValue(msg) => write!(f, "Invalid value: {}", msg),
+            //BuilderError::InvalidValue(msg) => write!(f, "Invalid value: {}", msg),
         }
     }
 }
 
 impl Error for BuilderError {}
 
-#[derive(Debug, Serialize)]
+// Field within an "example".
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Example {
+    phrase: String,
+    pronunciation: String,
+    translation: String,
+}
+
+#[derive(Debug, Default)]
+pub struct ExampleBuilder {
+    phrase: Option<String>,
+    pronunciation: Option<String>,
+    translation: Option<String>,
+}
+
+impl ExampleBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn phrase(mut self, value: impl Into<String>) -> Self {
+        self.phrase = Some(value.into());
+        self
+    }
+
+    pub fn pronunciation(mut self, value: impl Into<String>) -> Self {
+        self.pronunciation = Some(value.into());
+        self
+    }
+
+    pub fn translation(mut self, value: impl Into<String>) -> Self {
+        self.translation = Some(value.into());
+        self
+    }
+
+    pub fn build(self) -> Result<Example, BuilderError> {
+        Ok(Example {
+            phrase: self.phrase.ok_or(BuilderError::MissingField("phrase"))?,
+            pronunciation: self
+                .pronunciation
+                .ok_or(BuilderError::MissingField("pronunciation"))?,
+            translation: self
+                .translation
+                .ok_or(BuilderError::MissingField("translation"))?,
+        })
+    }
+}
+
+// Field within a "language_translation" (japanese or chinese).
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LanguageTranslation {
     translation: String,
     pronunciation: String,
-    grammar: String,
+    grammar: Vec<String>,
+    examples: Vec<Example>,
 }
 
 #[derive(Debug, Default)]
 pub struct LanguageTranslationBuilder {
     translation: Option<String>,
     pronunciation: Option<String>,
-    grammar: Option<String>,
+    grammar: Vec<String>,
+    examples: Vec<Example>,
 }
 
 impl LanguageTranslationBuilder {
@@ -39,7 +90,7 @@ impl LanguageTranslationBuilder {
     }
 
     // Each setter method takes ownership of self and returns Self
-    // This enables method chaining
+    // This enables method chaining.
     pub fn translation(mut self, value: impl Into<String>) -> Self {
         self.translation = Some(value.into());
         self
@@ -50,35 +101,43 @@ impl LanguageTranslationBuilder {
         self
     }
 
+    #[allow(dead_code)]
     pub fn grammar(mut self, value: impl Into<String>) -> Self {
-        self.grammar = Some(value.into());
+        self.grammar.push(value.into());
+        self
+    }
+
+    pub fn grammars(mut self, values: Vec<impl Into<String>>) -> Self {
+        self.grammar.extend(values.into_iter().map(Into::into));
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn example(mut self, example: Example) -> Self {
+        self.examples.push(example);
+        self
+    }
+
+    pub fn examples(mut self, examples: Vec<Example>) -> Self {
+        self.examples.extend(examples);
         self
     }
 
     pub fn build(self) -> Result<LanguageTranslation, BuilderError> {
-        // Using the ? operator with our custom error type makes validation cleaner
-        let translation = self
-            .translation
-            .ok_or(BuilderError::MissingField("translation"))?;
-        let pronunciation = self
-            .pronunciation
-            .ok_or(BuilderError::MissingField("pronunciation"))?;
-        let grammar = self.grammar.ok_or(BuilderError::MissingField("grammar"))?;
-
-        // Here we could add more validation if needed
-        if translation.is_empty() {
-            return Err(BuilderError::InvalidValue("translation cannot be empty"));
-        }
-
         Ok(LanguageTranslation {
-            translation,
-            pronunciation,
-            grammar,
+            translation: self
+                .translation
+                .ok_or(BuilderError::MissingField("translation"))?,
+            pronunciation: self
+                .pronunciation
+                .ok_or(BuilderError::MissingField("pronunciation"))?,
+            grammar: self.grammar,
+            examples: self.examples,
         })
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Translation {
     original: String,
     japanese: LanguageTranslation,
@@ -125,7 +184,7 @@ impl TranslationBuilder {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TranslationResponse {
     translations: Vec<Translation>,
 }
@@ -152,7 +211,13 @@ impl TranslationResponseBuilder {
     }
 }
 
-// Add convenient builder creation methods to our main types
+// Add convenient builder creation methods to our main types.
+impl Example {
+    pub fn builder() -> ExampleBuilder {
+        ExampleBuilder::new()
+    }
+}
+
 impl LanguageTranslation {
     pub fn builder() -> LanguageTranslationBuilder {
         LanguageTranslationBuilder::new()
@@ -169,4 +234,9 @@ impl TranslationResponse {
     pub fn builder() -> TranslationResponseBuilder {
         TranslationResponseBuilder::new()
     }
+}
+
+#[derive(serde::Deserialize)]
+pub struct TranslationRequest {
+    pub text: String,
 }

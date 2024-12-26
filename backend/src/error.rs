@@ -10,4 +10,7 @@ pub enum AppError {
 
     #[error("Message parsing error: {0}")]
     MessageParse(String),
+
+    #[error("Server error: {0}")]
+    Server(String),
 }

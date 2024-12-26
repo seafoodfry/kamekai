@@ -1,92 +1,179 @@
-use http_body_util::Full;
-use hyper::body::Bytes;
-use hyper::{Request, Response, StatusCode};
+use anyhow::{Context, Result};
+use axum::{extract::Json, http::StatusCode, response::IntoResponse};
 use serde_json::json;
-use std::convert::Infallible;
 
-use super::models::{BuilderError, LanguageTranslation, Translation, TranslationResponse};
+use crate::{
+    aws,
+    conversation::ConversationBuilder,
+    server::models::{
+        BuilderError, Example, ExampleBuilder, LanguageTranslation, Translation,
+        TranslationRequest, TranslationResponse,
+    },
+};
 
-fn create_response(
-    status: StatusCode,
-    content_type: &str,
-    body: impl Into<Bytes>,
-) -> Response<Full<Bytes>> {
-    Response::builder()
-        .status(status)
-        .header("content-type", content_type)
-        .header("x-protocol", "h2")
-        .body(Full::new(body.into()))
-        .unwrap_or_else(|e| {
-            eprintln!("Failed to create response: {}", e);
-            Response::new(Full::new(Bytes::from(
-                r#"{"error":"Internal Server Error"}"#,
-            )))
-        })
+pub async fn handle_health() -> impl IntoResponse {
+    (StatusCode::OK, Json(json!({ "status": "healthy" }))).into_response()
 }
 
-// Returns Result<Response, Infallible> because it handles all its own errors
-// by converting them into appropriate HTTP responses.
-// We ALWAYS return a Response, never an Err.
-pub async fn handle_translate(
-    _: Request<hyper::body::Incoming>,
-) -> Result<Response<Full<Bytes>>, Infallible> {
-    let response = match create_dummy_response() {
-        Ok(response) => response,
+pub async fn handle_translate(Json(payload): Json<TranslationRequest>) -> impl IntoResponse {
+    match process_translation(&payload.text).await {
+        Ok(response) => (StatusCode::OK, Json(response)).into_response(),
         Err(e) => {
-            // Convert builder error to a proper API error response.
-            eprintln!("Failed to create response: {}", e);
-            return Ok(create_response(
+            // Log the full error chain.
+            tracing::error!(
+                "Failed to process translation. Error chain: \n{:?}",
+                e.chain().collect::<Vec<_>>()
+            );
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "application/json",
-                json!({
-                    "error": format!("Failed to create response")
-                })
-                .to_string(),
-            ));
-        }
-    };
-
-    Ok(match serde_json::to_string(&response) {
-        Ok(json) => create_response(StatusCode::OK, "application/json", json),
-        Err(e) => {
-            eprintln!("JSON serialization error: {}", e);
-            create_response(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "application/json",
-                json!({
-                    "error": "Internal Server Error"
-                })
-                .to_string(),
+                Json(json!({
+                    "error": "Failed to create translation response"
+                })),
             )
+                .into_response()
         }
-    })
+    }
 }
 
-pub async fn handle_not_found(
-    _: Request<hyper::body::Incoming>,
-) -> Result<Response<Full<Bytes>>, Infallible> {
-    Ok(Response::builder()
-        .status(StatusCode::NOT_FOUND)
-        .header("content-type", "text/plain")
-        .body(Full::new(Bytes::from("Not Found")))
-        .unwrap())
+async fn process_translation(text: &str) -> Result<TranslationResponse> {
+    // Initialize the AWS client.
+    let aws_client = aws::AWSClient::new(Some(aws::InferenceParameters {
+        temperature: 0.8,
+        max_tokens: 1024,
+        top_p: 0.95,
+    }))
+    .await
+    .context("Error creating AWS client")?;
+
+    let message = ConversationBuilder::new()
+    .with_system_prompt(
+        r#"You are the brains for an app that aims to teach Japanese and Chinese.
+Because you are the brains for an app, you need to respond in JSON format.
+The users will send you some text that you need to separate into sentences or phrases,
+and then translate them into Japanese and Chinese.
+If the text is in english then translate it to Japanese and Chinese.
+If the text is in Japanese, then only worry about translating it to Chinese.
+If the text is in Chinese, then only worry about translating it to Japanese.
+
+Your response should look like the following example:
+{
+    "translations": [
+        {
+            "original": "I told you so",
+            "japanese": {
+                "translation": "だから言ったでしょう",
+                "pronunciation": "dakara itta deshou",
+                "grammar": [
+                    "だから (dakara): 'That's why' or 'So.'",
+                    "言った (いった, itta): The past tense of 言う (いう, iu), meaning 'to say' or 'to tell.'",
+                    "でしょう (deshou): A sentence-ending particle that adds a tone of confirmation or assertion, often implying 'didn't I?' or 'right?'"
+                ],
+                "examples": [
+                    {
+                        "phrase": "ほら、だから言ったでしょう！",
+                        "pronunciation": "ほら、だからいったでしょう!",
+                        "translation": "See, I told you so!"
+                    },
+                    {
+                        "phrase": "言ったよね",
+                        "pronunciation": "いったよね",
+                        "translation": "I told you, right?"
+                    }
+                ]
+            },
+            "chinese": {
+                "translation": "我早就跟你说了",
+                "pronunciation": "wǒ zǎo jiù gēn nǐ shuō le",
+                "grammar": [
+                    "早就 (zǎo jiù): 'A long time ago' or 'already.'",
+                    "跟 (gēn): 'With' or 'to.'",
+                    "说了 (shuō le): 'Said' or 'told.'"
+                ],
+                "examples": [
+                    {
+                        "phrase": "我就说嘛",
+                        "pronunciation": "wǒ jiù shuō ma",
+                        "translation": "See, I said so!"
+                    },
+                    {
+                        "phrase": "你看，我不是早就说过了吗！",
+                        "pronunciation": "nǐ kàn, wǒ bù shì zǎo jiù shuō guò le ma!",
+                        "translation": "See? Didn't I already tell you!"
+                    }
+                ]
+            }
+        }
+    ]
+}"#
+    )
+    .add_user_message(text)
+    .build()
+    .context("Error creating messages for AWS Bedrock")?;
+
+    let output = aws_client
+        .create_conversation(vec![message])
+        .await
+        .context("Error creating conversation with AWS Bedrock")?;
+
+    println!("Output:\n{}", output);
+    let response: TranslationResponse =
+        serde_json::from_str(&output).context("Error parsing Bedrock response")?;
+
+    Ok(response)
 }
 
-fn create_dummy_response() -> Result<TranslationResponse, BuilderError> {
+#[allow(dead_code)]
+fn create_translation_response(text: &str) -> Result<TranslationResponse, BuilderError> {
+    let japanese_grammar = vec![
+        "だから (dakara): 'That's why' or 'So.'",
+        "言った (いった, itta): The past tense of 言う (いう, iu), meaning 'to say' or 'to tell.'",
+        "でしょう (deshou): A sentence-ending particle that adds a tone of confirmation or assertion, often implying 'didn't I?' or 'right?'"
+    ];
+    let japanese_examples = vec![
+        Example::builder()
+            .phrase("ほら、だから言ったでしょう！")
+            .pronunciation("ほら、だからいったでしょう!")
+            .translation("See, I told you so!")
+            .build()?,
+        Example::builder()
+            .phrase("言ったよね")
+            .pronunciation("いったよね")
+            .translation("I told you, right?")
+            .build()?,
+    ];
     let japanese = LanguageTranslation::builder()
         .translation("こんにちは世界".to_string())
         .pronunciation("Konnichiwa sekai".to_string())
-        .grammar("Basic greeting + noun".to_string())
+        .grammars(japanese_grammar)
+        .examples(japanese_examples)
         .build()?;
 
+    let chinese_grammar = vec![
+        "早就 (zǎo jiù): 'A long time ago' or 'already.'",
+        "跟 (gēn): 'With' or 'to.'",
+        "说了 (shuō le): 'Said' or 'told.'",
+    ];
+    let chinese_examples = vec![
+        ExampleBuilder::new()
+            .phrase("我就说嘛")
+            .pronunciation("wǒ jiù shuō ma")
+            .translation("See, I said so!")
+            .build()?,
+        ExampleBuilder::new()
+            .phrase("你看，我不是早就说过了吗！")
+            .pronunciation("nǐ kàn, wǒ bù shì zǎo jiù shu")
+            .translation("See? Didn't I already tell you!")
+            .build()?,
+    ];
     let chinese = LanguageTranslation::builder()
         .translation("你好世界".to_string())
         .pronunciation("Nǐ hǎo shìjiè".to_string())
-        .grammar("Basic greeting + noun".to_string())
+        .grammars(chinese_grammar)
+        .examples(chinese_examples)
         .build()?;
 
     let translation = Translation::builder()
-        .original("Hello world".to_string())
+        .original(text.to_string())
         .japanese(japanese)
         .chinese(chinese)
         .build()?;
