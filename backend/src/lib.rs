@@ -18,7 +18,9 @@ pub async fn create_conversation(language: Language) -> Result<String> {
         temperature: 0.8,
         max_tokens: 1024,
         top_p: 0.95,
-    }));
+    }))
+    .await
+    .context("Error creating AWS client")?;
 
     // Generate the prompt.
     let greeting = language.get_greeting();

@@ -5,7 +5,10 @@ use serde_json::json;
 use crate::{
     aws,
     conversation::ConversationBuilder,
-    server::models::{BuilderError, LanguageTranslation, TranslationRequest, TranslationResponse},
+    server::models::{
+        BuilderError, Example, ExampleBuilder, LanguageTranslation, Translation,
+        TranslationRequest, TranslationResponse,
+    },
 };
 
 pub async fn handle_health() -> impl IntoResponse {
@@ -28,13 +31,16 @@ pub async fn handle_translate(Json(payload): Json<TranslationRequest>) -> impl I
     }
 }
 
-fn process_translation(text: &str) -> Result<String> {
+#[allow(dead_code)]
+async fn process_translation(text: &str) -> Result<String> {
     // Initialize the AWS client.
     let aws_client = aws::AWSClient::new(Some(aws::InferenceParameters {
         temperature: 0.8,
         max_tokens: 1024,
         top_p: 0.95,
-    }));
+    }))
+    .await
+    .context("Error creating AWS client")?;
 
     let message = ConversationBuilder::new()
     .with_system_prompt(
@@ -108,16 +114,52 @@ Your response should look like the following example:
 }
 
 fn create_translation_response(text: &str) -> Result<TranslationResponse, BuilderError> {
+    let japanese_grammar = vec![
+        "だから (dakara): 'That's why' or 'So.'",
+        "言った (いった, itta): The past tense of 言う (いう, iu), meaning 'to say' or 'to tell.'",
+        "でしょう (deshou): A sentence-ending particle that adds a tone of confirmation or assertion, often implying 'didn't I?' or 'right?'"
+    ];
+    let japanese_examples = vec![
+        Example::builder()
+            .phrase("ほら、だから言ったでしょう！")
+            .pronunciation("ほら、だからいったでしょう!")
+            .translation("See, I told you so!")
+            .build()?,
+        Example::builder()
+            .phrase("言ったよね")
+            .pronunciation("いったよね")
+            .translation("I told you, right?")
+            .build()?,
+    ];
     let japanese = LanguageTranslation::builder()
         .translation("こんにちは世界".to_string())
         .pronunciation("Konnichiwa sekai".to_string())
-        .grammar("Basic greeting + noun".to_string())
+        .grammars(japanese_grammar)
+        .examples(japanese_examples)
         .build()?;
 
+    let chinese_grammar = vec![
+        "早就 (zǎo jiù): 'A long time ago' or 'already.'",
+        "跟 (gēn): 'With' or 'to.'",
+        "说了 (shuō le): 'Said' or 'told.'",
+    ];
+    let chinese_examples = vec![
+        ExampleBuilder::new()
+            .phrase("我就说嘛")
+            .pronunciation("wǒ jiù shuō ma")
+            .translation("See, I said so!")
+            .build()?,
+        ExampleBuilder::new()
+            .phrase("你看，我不是早就说过了吗！")
+            .pronunciation("nǐ kàn, wǒ bù shì zǎo jiù shu")
+            .translation("See? Didn't I already tell you!")
+            .build()?,
+    ];
     let chinese = LanguageTranslation::builder()
         .translation("你好世界".to_string())
         .pronunciation("Nǐ hǎo shìjiè".to_string())
-        .grammar("Basic greeting + noun".to_string())
+        .grammars(chinese_grammar)
+        .examples(chinese_examples)
         .build()?;
 
     let translation = Translation::builder()

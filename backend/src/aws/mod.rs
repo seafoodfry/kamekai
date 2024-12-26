@@ -2,9 +2,9 @@ pub mod bedrock;
 
 use bedrock::get_converse_output_text;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use aws_config::SdkConfig;
-use aws_sdk_bedrockruntime::{types::Message, Client};
+use aws_sdk_bedrockruntime::{types::InferenceConfiguration, types::Message, Client};
 use aws_sdk_sts::Client as StsClient;
 
 const AWS_REGION: &str = "us-east-1";
@@ -23,14 +23,14 @@ async fn get_aws_account_id(config: &SdkConfig) -> Result<String> {
     identity
         .account()
         .map(|account_id| account_id.to_string())
-        .ok_or_else(|| anyhow!("Error STS get-caller-identity did not contain an account ID"))?
+        .ok_or_else(|| anyhow!("Error STS get-caller-identity did not contain an account ID"))
 }
 
 #[derive(Debug)]
 pub struct InferenceParameters {
-    temperature: f32,
-    max_tokens: i32,
-    top_p: f32,
+    pub temperature: f32,
+    pub max_tokens: i32,
+    pub top_p: f32,
 }
 
 impl Default for InferenceParameters {
@@ -44,14 +44,13 @@ impl Default for InferenceParameters {
 }
 
 pub struct AWSClient {
-    config: SdkConfig,
     bedrock_client: Client,
     inference_profile: String,
     inference_parameters: InferenceParameters,
 }
 
 impl AWSClient {
-    pub fn new(params: Option<InferenceParameters>) -> Result<Self> {
+    pub async fn new(params: Option<InferenceParameters>) -> Result<Self> {
         let sdk_config = aws_config::defaults(aws_config::BehaviorVersion::v2024_03_28())
             .region(AWS_REGION)
             .load()
@@ -66,7 +65,6 @@ impl AWSClient {
         let inference_params = params.unwrap_or_default();
 
         Ok(Self {
-            config: sdk_config,
             bedrock_client: client,
             inference_profile: aws_inference_profile,
             inference_parameters: inference_params,
@@ -83,7 +81,7 @@ impl AWSClient {
         let response = self
             .bedrock_client
             .converse()
-            .model_id(self.inference_profile)
+            .model_id(&self.inference_profile)
             .set_messages(Some(messages))
             .set_inference_config(Some(inference_config))
             .send()

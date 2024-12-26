@@ -1,7 +1,5 @@
 use clap::{Parser, Subcommand};
 
-pub mod server;
-
 use backend::server::run_server;
 use backend::Language;
 use backend::{create_conversation, AppError};
@@ -47,7 +45,6 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             run_server(host, port)
                 .await
                 .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
-            println!("Claude's response:\n{}", response);
         }
         None => {
             println!("No subcommand provided. Run with the -h flag to see usage.");

@@ -5,20 +5,21 @@ use std::fmt;
 #[derive(Debug, Serialize)]
 pub enum BuilderError {
     MissingField(&'static str),
-    InvalidValue(&'static str),
+    //InvalidValue(&'static str),
 }
 
 impl fmt::Display for BuilderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             BuilderError::MissingField(field) => write!(f, "Missing required field: {}", field),
-            BuilderError::InvalidValue(msg) => write!(f, "Invalid value: {}", msg),
+            //BuilderError::InvalidValue(msg) => write!(f, "Invalid value: {}", msg),
         }
     }
 }
 
 impl Error for BuilderError {}
 
+// Field within an "example".
 #[derive(Debug, Serialize)]
 pub struct Example {
     phrase: String,
@@ -66,6 +67,7 @@ impl ExampleBuilder {
     }
 }
 
+// Field within a "language_translation" (japanese or chinese).
 #[derive(Debug, Serialize)]
 pub struct LanguageTranslation {
     translation: String,
@@ -88,7 +90,7 @@ impl LanguageTranslationBuilder {
     }
 
     // Each setter method takes ownership of self and returns Self
-    // This enables method chaining
+    // This enables method chaining.
     pub fn translation(mut self, value: impl Into<String>) -> Self {
         self.translation = Some(value.into());
         self
@@ -99,13 +101,25 @@ impl LanguageTranslationBuilder {
         self
     }
 
-    pub fn add_grammar(mut self, value: impl Into<String>) -> Self {
+    #[allow(dead_code)]
+    pub fn grammar(mut self, value: impl Into<String>) -> Self {
         self.grammar.push(value.into());
         self
     }
 
-    pub fn add_example(mut self, example: Example) -> Self {
+    pub fn grammars(mut self, values: Vec<impl Into<String>>) -> Self {
+        self.grammar.extend(values.into_iter().map(Into::into));
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn example(mut self, example: Example) -> Self {
         self.examples.push(example);
+        self
+    }
+
+    pub fn examples(mut self, examples: Vec<Example>) -> Self {
+        self.examples.extend(examples);
         self
     }
 
