@@ -1,3 +1,4 @@
+VERSION != awk -F '=' '/^version/ {gsub(/[" ]/, "", $$2); print $$2}' Cargo.toml
 IMG := kamekai-backend
 CONTAINER_OPTS := --rm \
 	-p 8080:8080 \
@@ -57,6 +58,15 @@ test:  ## Run tests
 .PHONY: security
 security:  ## Run security checks
 	cargo audit
+
+
+.PHONY: version
+version:  ## Display the current version
+	@echo "Version: $(VERSION)"
+
+.PHONY: publish
+publish: build  ## Publish the ECR image
+	./run-cmd-in-shell.sh ./publish.sh $(IMG) $(VERSION)
 
 
 ##@ Quality Assurance.
