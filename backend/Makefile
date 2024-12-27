@@ -1,5 +1,7 @@
-VERSION != awk -F '=' '/^version/ {gsub(/[" ]/, "", $$2); print $$2}' Cargo.toml
-IMG := kamekai-backend
+VERSION := $(shell cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "backend") | .version')
+APP := kamekai-backend
+TAG := $(VERSION)
+IMG := $(APP):$(TAG)
 CONTAINER_OPTS := --rm \
 	-p 8080:8080 \
 	-e OTEL_SERVICE_NAME="kamekai-backend" \
@@ -63,6 +65,7 @@ security:  ## Run security checks
 .PHONY: version
 version:  ## Display the current version
 	@echo "Version: $(VERSION)"
+	@echo "Image: $(IMG)"
 
 .PHONY: publish
 publish: build  ## Publish the ECR image

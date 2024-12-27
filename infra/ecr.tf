@@ -8,7 +8,7 @@ resource "aws_ecr_repository" "kamekai" {
 }
 
 resource "aws_ecr_lifecycle_policy" "kamekai" {
-  repository = aws_ecr_repository.kamekai
+  repository = aws_ecr_repository.kamekai.name
 
   policy = jsonencode({
     rules = [{
