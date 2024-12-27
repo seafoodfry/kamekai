@@ -68,8 +68,8 @@ version:  ## Display the current version
 	@echo "Image: $(IMG)"
 
 .PHONY: publish
-publish: build  ## Publish the ECR image
-	./run-cmd-in-shell.sh ./publish.sh $(IMG) $(VERSION)
+publish: qa  ## Publish the ECR image
+	./run-cmd-in-shell.sh ./publish.sh
 
 
 ##@ Quality Assurance.
