@@ -16,7 +16,7 @@ interface LoadingPageProps {
   isLoading: boolean;
 }
 
-export const LoadingPage : React.FC<LoadingPageProps> = ({ isLoading }) => {
+export const LoadingPage: React.FC<LoadingPageProps> = ({ isLoading }) => {
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
 

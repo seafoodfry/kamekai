@@ -1,4 +1,7 @@
-IMG := kamekai-backend
+VERSION := $(shell cargo metadata --format-version=1 --no-deps | jq -r '.packages[] | select(.name == "backend") | .version')
+APP := kamekai-backend
+TAG := $(VERSION)
+IMG := $(APP):$(TAG)
 CONTAINER_OPTS := --rm \
 	-p 8080:8080 \
 	-e OTEL_SERVICE_NAME="kamekai-backend" \
@@ -57,6 +60,16 @@ test:  ## Run tests
 .PHONY: security
 security:  ## Run security checks
 	cargo audit
+
+
+.PHONY: version
+version:  ## Display the current version
+	@echo "Version: $(VERSION)"
+	@echo "Image: $(IMG)"
+
+.PHONY: publish
+publish: qa  ## Publish the ECR image
+	./run-cmd-in-shell.sh ./publish.sh
 
 
 ##@ Quality Assurance.
