@@ -19,36 +19,36 @@ resource "aws_acm_certificate" "api" {
   }
 }
 
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
+# resource "aws_route53_record" "cert_validation" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
+#       name   = dvo.resource_record_name
+#       record = dvo.resource_record_value
+#       type   = dvo.resource_record_type
+#     }
+#   }
 
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = data.aws_route53_zone.domain.zone_id
-}
+#   allow_overwrite = true
+#   name            = each.value.name
+#   records         = [each.value.record]
+#   ttl             = 60
+#   type            = each.value.type
+#   zone_id         = data.aws_route53_zone.domain.zone_id
+# }
 
-resource "aws_acm_certificate_validation" "api" {
-  certificate_arn         = aws_acm_certificate.api.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-}
+# resource "aws_acm_certificate_validation" "api" {
+#   certificate_arn         = aws_acm_certificate.api.arn
+#   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+# }
 
-resource "aws_apprunner_custom_domain_association" "api" {
-  domain_name = "api.seafoodfry.ninja"
-  service_arn = aws_apprunner_service.kamekai.arn
+# resource "aws_apprunner_custom_domain_association" "api" {
+#   domain_name = "api.seafoodfry.ninja"
+#   service_arn = aws_apprunner_service.kamekai.arn
 
-  depends_on = [
-    aws_acm_certificate_validation.api
-  ]
-}
+#   depends_on = [
+#     aws_acm_certificate_validation.api
+#   ]
+# }
 
 # # Create validation records required by App Runner.
 # resource "aws_route53_record" "apprunner_validation" {
