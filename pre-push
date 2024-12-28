@@ -11,5 +11,10 @@ set -euo pipefail
         make qa
 )
 
+(
+    cd infra/ && \
+        terraform fmt
+)
+
 echo "scanning commit history..."
 git secrets --scan-history origin/main..HEAD

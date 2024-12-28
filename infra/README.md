@@ -1,7 +1,7 @@
 # Infra
 
 ```
-TF_VAR_my_ip=$(curl https://cloudflare.com/cdn-cgi/trace | grep ip | awk -F= '{print $2}')
+export TF_VAR_my_ip=$(curl https://cloudflare.com/cdn-cgi/trace | grep ip | awk -F= '{print $2}')
 
 ./run-cmd-in-shell.sh terraform init
 ./run-cmd-in-shell.sh terraform plan -out a.plan
@@ -15,6 +15,6 @@ To clean up
 
 To test the app
 ```
-ENDPOINT=https://5jf4mp9ssg.us-east-1.awsapprunner.com/translate
+ENDPOINT=api.seafoodfry.ninja
 curl "${ENDPOINT}" -X POST -H "Content-Type: application/json" -d '{"text":"luck"}'  | jq .
 ```
