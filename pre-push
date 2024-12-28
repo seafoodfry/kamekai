@@ -1,0 +1,15 @@
+#!/bin/sh
+set -euo pipefail
+
+(
+    cd kamekai/ && \
+        make qa
+)
+
+(
+    cd backend/ && \
+        make qa
+)
+
+echo "scanning commit history..."
+git secrets --scan-history origin/main..HEAD

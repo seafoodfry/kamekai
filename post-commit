@@ -1,0 +1,6 @@
+#!/bin/sh
+set -euo pipefail
+  
+echo ">>> scanning for secrets..."
+git-secrets --scan -r
+git secrets --scan-history $(git rev-list -n 10 HEAD | tail -n 1)..HEAD 
