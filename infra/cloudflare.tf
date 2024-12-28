@@ -59,9 +59,11 @@ resource "aws_apprunner_custom_domain_association" "api" {
 #   name            = "api"
 #   type            = "CNAME"
 #   content         = aws_apprunner_custom_domain_association.api.dns_target
-#   ttl             = 1 # Must be 1 when proxied is enabled.
-#   proxied         = true
-#   comment         = "App Runner domain"
+#   ttl             = 60 # Must be 1 when proxied is enabled.
+#   # Do NOT turn it on, app runner and cloudflare will fight for HTTPS control and
+#   # you'll end with a TON of redirects.
+#   proxied = false
+#   comment = "App Runner domain"
 
 #   depends_on = [
 #     aws_apprunner_custom_domain_association.api,
