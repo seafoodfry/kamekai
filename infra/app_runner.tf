@@ -20,9 +20,11 @@ resource "aws_apprunner_service" "kamekai" {
     }
   }
 
+  # See https://aws.amazon.com/apprunner/pricing/
+  # Scroll down, there is a "Supported configurations" section.
   instance_configuration {
-    cpu    = "1 vCPU"
-    memory = "2 GB"
+    cpu    = "0.25 vCPU"
+    memory = "0.5 GB"
 
     instance_role_arn = aws_iam_role.kamekai.arn
   }
