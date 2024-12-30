@@ -18,6 +18,7 @@ resource "cloudflare_record" "cert_validation" {
   type    = each.value.type
   ttl     = 60
   proxied = false
+  comment = "API sub-domain certificate validation record"
 }
 
 resource "aws_acm_certificate_validation" "api" {
@@ -70,3 +71,40 @@ resource "aws_apprunner_custom_domain_association" "api" {
 #     cloudflare_record.apprunner_validation
 #   ]
 # }
+
+###############
+# Auth Domain #
+###############
+# SSL Certificate for auth domain.
+resource "aws_acm_certificate" "auth_cert" {
+  domain_name       = "auth.seafoodfry.ninja"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Create DNS validation records in Cloudflare instead of Route53.
+resource "cloudflare_record" "auth_cert" {
+  for_each = {
+    for dvo in aws_acm_certificate.auth_cert.domain_validation_options : dvo.domain_name => {
+      name  = dvo.resource_record_name
+      value = dvo.resource_record_value
+      type  = dvo.resource_record_type
+    }
+  }
+
+  zone_id = data.cloudflare_zone.domain.id
+  name    = each.value.name
+  content = each.value.value
+  type    = each.value.type
+  ttl     = 60
+  proxied = false
+  comment = "Auth sub-domain certificate validation record"
+}
+
+resource "aws_acm_certificate_validation" "auth_cert" {
+  certificate_arn         = aws_acm_certificate.auth_cert.arn
+  validation_record_fqdns = [for record in cloudflare_record.auth_cert : record.hostname]
+}
