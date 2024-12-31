@@ -1,4 +1,4 @@
-use axum::http::header::CONTENT_TYPE;
+use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use axum::http::Method;
 use axum::{
     extract::{ConnectInfo, MatchedPath},
@@ -109,7 +109,11 @@ pub async fn run_server(
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods([Method::POST, Method::OPTIONS])
-        .allow_headers([CONTENT_TYPE])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE])
+        .allow_credentials(true)
+        .expose_headers([
+        // Add any custom headers your frontend needs to read
+    ])
         .max_age(Duration::from_secs(3600));
 
     let app = Router::new()
