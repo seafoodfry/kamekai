@@ -168,5 +168,5 @@ resource "aws_cognito_user_pool_domain" "kamekai" {
   user_pool_id    = aws_cognito_user_pool.kamekai.id
   certificate_arn = aws_acm_certificate.auth_cert.arn
 
-  depends_on = [ cloudflare_record.domain_root_dummy ]
+  depends_on = [cloudflare_record.domain_root_dummy]
 }
