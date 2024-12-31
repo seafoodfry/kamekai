@@ -108,3 +108,32 @@ resource "aws_acm_certificate_validation" "auth_cert" {
   certificate_arn         = aws_acm_certificate.auth_cert.arn
   validation_record_fqdns = [for record in cloudflare_record.auth_cert : record.hostname]
 }
+
+# Create CNAME record for the App Runner domain in Cloudflare.
+resource "cloudflare_record" "cognito_auth" {
+  zone_id         = data.cloudflare_zone.domain.id
+  allow_overwrite = true
+  name            = "auth"
+  type            = "CNAME"
+  content         = aws_cognito_user_pool_domain.kamekai.cloudfront_distribution
+  ttl             = 60 # Must be 1 when proxied is enabled.
+  # Do NOT turn it on, app runner and cloudflare will fight for HTTPS control and
+  # you'll end with a TON of redirects.
+  proxied = false
+  comment = "Cognito user pool domain"
+
+  depends_on = [
+    aws_cognito_user_pool_domain.kamekai,
+    aws_acm_certificate_validation.auth_cert,
+  ]
+}
+
+# See
+# https://repost.aws/knowledge-center/cognito-custom-domain-errors
+resource "cloudflare_record" "domain_root_dummy" {
+  zone_id = data.cloudflare_zone.domain.id
+  name    = "seafoodfry.ninja"
+  type    = "A"
+  content = "1.1.1.1" # Placeholder IP
+  proxied = false
+}
