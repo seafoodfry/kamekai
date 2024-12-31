@@ -110,7 +110,8 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
   name         = "kamekai-desktop"
   user_pool_id = aws_cognito_user_pool.kamekai.id
 
-  generate_secret = true
+  # We are using auth code w/ PKCE.
+  generate_secret = false
 
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code"]
@@ -118,12 +119,12 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
 
   callback_urls = [
     "kamekai://auth/callback",            # Desktop app custom protocol.
-    "http://localhost:8080/auth/callback" # Local development.
+    "http://localhost:1420/auth/callback" # Local development.
   ]
 
   logout_urls = [
     "kamekai://auth/logout",
-    "http://localhost:8080/auth/logout"
+    "http://localhost:1420/auth/logout"
   ]
 
   prevent_user_existence_errors = "ENABLED"
@@ -133,7 +134,8 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
   # This IP address, and a device fingerprint, contribute to risk evaluation by Amazon Cognito
   # advanced security features. When you don't accept additional user context data, your app
   # client only accepts the device fingerprint.
-  enable_propagate_additional_user_context_data = true
+  # Client Secret is required to set EnablePropagateAdditionalUserContextData as true
+  #enable_propagate_additional_user_context_data = true
 }
 
 # # Cognito App Client for Web App (for future use)
@@ -160,9 +162,11 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
 #   supported_identity_providers = ["COGNITO"]
 # }
 
-# # Cognito Domain
-# resource "aws_cognito_user_pool_domain" "kamekai" {
-#   domain       = "auth.seafoodfry.ninja"
-#   user_pool_id = aws_cognito_user_pool.kamekai.id
-#   certificate_arn = aws_acm_certificate.auth_cert.arn
-# }
+# Cognito Domain
+resource "aws_cognito_user_pool_domain" "kamekai" {
+  domain          = "auth.seafoodfry.ninja"
+  user_pool_id    = aws_cognito_user_pool.kamekai.id
+  certificate_arn = aws_acm_certificate.auth_cert.arn
+
+  depends_on = [cloudflare_record.domain_root_dummy]
+}
