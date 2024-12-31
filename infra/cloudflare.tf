@@ -27,14 +27,14 @@ resource "aws_acm_certificate_validation" "api" {
 }
 
 
-resource "aws_apprunner_custom_domain_association" "api" {
-  domain_name = "api.seafoodfry.ninja"
-  service_arn = aws_apprunner_service.kamekai.arn
+# resource "aws_apprunner_custom_domain_association" "api" {
+#   domain_name = "api.seafoodfry.ninja"
+#   service_arn = aws_apprunner_service.kamekai.arn
 
-  depends_on = [
-    aws_acm_certificate_validation.api
-  ]
-}
+#   depends_on = [
+#     aws_acm_certificate_validation.api
+#   ]
+# }
 
 # # Create App Runner validation records in Cloudflare.
 # resource "cloudflare_record" "apprunner_validation" {
@@ -134,6 +134,6 @@ resource "cloudflare_record" "domain_root_dummy" {
   zone_id = data.cloudflare_zone.domain.id
   name    = "seafoodfry.ninja"
   type    = "A"
-  content = "1.1.1.1" # Placeholder IP
+  content = "1.1.1.1" # Placeholder IP.
   proxied = false
 }

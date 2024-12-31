@@ -79,6 +79,11 @@ async fn shutdown_signal() {
 
 pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing.
+    // Get ANSI color preference from environment variable (default to true if not set)
+    let enable_ansi = std::env::var("ENABLE_ANSI")
+        .map(|v| v.to_lowercase() != "false")
+        .unwrap_or(true);
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
@@ -91,7 +96,14 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
                 .into()
             }),
         )
-        .with(tracing_subscriber::fmt::layer())
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_line_number(true)
+                .with_ansi(enable_ansi)
+                .with_file(true)
+                .with_thread_ids(true)
+                .with_thread_names(true),
+        )
         .init();
 
     // build our application with our routes.
