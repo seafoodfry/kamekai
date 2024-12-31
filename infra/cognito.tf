@@ -162,7 +162,7 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
 #   supported_identity_providers = ["COGNITO"]
 # }
 
-# Cognito Domain
+# Cognito Domain.
 resource "aws_cognito_user_pool_domain" "kamekai" {
   domain          = "auth.seafoodfry.ninja"
   user_pool_id    = aws_cognito_user_pool.kamekai.id

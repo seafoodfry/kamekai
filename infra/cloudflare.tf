@@ -134,6 +134,6 @@ resource "cloudflare_record" "domain_root_dummy" {
   zone_id = data.cloudflare_zone.domain.id
   name    = "seafoodfry.ninja"
   type    = "A"
-  content = "1.1.1.1" # Placeholder IP
+  content = "1.1.1.1" # Placeholder IP.
   proxied = false
 }
