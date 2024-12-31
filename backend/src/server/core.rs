@@ -1,4 +1,4 @@
-use axum::http::header::CONTENT_TYPE;
+use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use axum::http::Method;
 use axum::{
     extract::{ConnectInfo, MatchedPath},
@@ -77,13 +77,12 @@ async fn shutdown_signal() {
     println!("Shutting down gracefully...");
 }
 
-pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn run_server(
+    host: String,
+    port: u16,
+    enable_ansi: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing.
-    // Get ANSI color preference from environment variable (default to true if not set)
-    let enable_ansi = std::env::var("ENABLE_ANSI")
-        .map(|v| v.to_lowercase() != "false")
-        .unwrap_or(true);
-
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
@@ -110,7 +109,11 @@ pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::erro
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods([Method::POST, Method::OPTIONS])
-        .allow_headers([CONTENT_TYPE])
+        .allow_headers([AUTHORIZATION, CONTENT_TYPE])
+        .allow_credentials(true)
+        .expose_headers([
+        // Add any custom headers your frontend needs to read
+    ])
         .max_age(Duration::from_secs(3600));
 
     let app = Router::new()
