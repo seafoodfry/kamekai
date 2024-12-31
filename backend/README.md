@@ -18,6 +18,10 @@ Testing code:
 ./run-cmd-in-shell.sh cargo run
 ```
 
+```
+curl http://localhost:8080/translate -XPOST -H "Content-Type: application/json" -d '{"text": "hi"}'
+```
+
 ```json
 {
   "translations": [

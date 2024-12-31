@@ -1,6 +1,6 @@
 [package]
 name = "backend"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 
 [dependencies]
@@ -10,7 +10,7 @@ aws-sdk-sts = "1.52.0"
 aws-sdk-bedrockruntime = "1.65.0"
 axum = "0.7"
 chrono = "0.4.39"
-clap = { version = "4.5.23", features = ["derive"] }
+clap = { version = "4.5.23", features = ["derive", "env"] }
 tower-http = { version = "0.6", features = ["cors", "trace", "timeout"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "local-time"] }

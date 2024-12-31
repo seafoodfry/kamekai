@@ -77,13 +77,12 @@ async fn shutdown_signal() {
     println!("Shutting down gracefully...");
 }
 
-pub async fn run_server(host: String, port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn run_server(
+    host: String,
+    port: u16,
+    enable_ansi: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing.
-    // Get ANSI color preference from environment variable (default to true if not set)
-    let enable_ansi = std::env::var("ENABLE_ANSI")
-        .map(|v| v.to_lowercase() != "false")
-        .unwrap_or(true);
-
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {

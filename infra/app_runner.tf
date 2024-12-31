@@ -14,7 +14,7 @@ resource "aws_apprunner_service" "kamekai" {
         port = "8080"
 
         runtime_environment_variables = {
-          "ENABLE_ANSI" = "false"
+          "APP_ENABLE_ANSI_LOGS" = "false"
         }
       }
     }

@@ -30,6 +30,9 @@ enum Commands {
         port: u16,
         #[arg(long, default_value = "0.0.0.0")]
         host: String,
+
+        #[arg(long, env = "APP_ENABLE_ANSI_LOGS", default_value = "true")]
+        enable_ansi: bool,
     },
 }
 
@@ -41,8 +44,12 @@ async fn run(cli: Cli) -> Result<(), AppError> {
                 .map_err(|e| AppError::Bedrock(format!("Failed to call bedrock: {:#?}", e)))?;
             println!("Claude's response:\n{}", response);
         }
-        Some(Commands::Server { port, host }) => {
-            run_server(host, port)
+        Some(Commands::Server {
+            port,
+            host,
+            enable_ansi,
+        }) => {
+            run_server(host, port, enable_ansi)
                 .await
                 .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
         }
