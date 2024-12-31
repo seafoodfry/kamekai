@@ -17,6 +17,7 @@ run: qa  ## Run the tauri app
 .PHONY: fmt
 fmt:  ## Format code
 	pnpm format
+	cd ./src-tauri && cargo fmt
 
 .PHONY: lint
 lint:  ## Lint code
