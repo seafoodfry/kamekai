@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Loader2 } from 'lucide-react';
 import { error } from '@tauri-apps/plugin-log';
 import { getLogoutUrl } from '@/config/auth';
+import { JWTDisplay } from '@/components/JWTDisplay';
 
 interface AuthStatusProps {
   onBack?: () => void;
@@ -37,11 +38,10 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
             <Home className="h-5 w-5" />
           </Button>
         )}
+
         <div className="text-sm text-gray-400">Logged in as: {auth.user?.profile.email}</div>
-        <div className="text-xs text-gray-500 break-all">
-          <div>ID Token:</div>
-          <div className="bg-[#2A2A2A] p-2 rounded mt-1">{auth.user?.id_token}</div>
-        </div>
+        <JWTDisplay token={auth.user?.id_token} />
+
         <Button
           onClick={() => {
             auth.removeUser();

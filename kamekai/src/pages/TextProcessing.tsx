@@ -43,7 +43,7 @@ export const TextProcessing: React.FC<TextProcessingProps> = ({ text, onBack }) 
   React.useEffect(() => {
     const fetchTranslations = async () => {
       try {
-        const response = await fetch('http://localhost:8080/translate', {
+        const response = await fetch('https://api.seafoodfry.ninja/translate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
