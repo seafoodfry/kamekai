@@ -4,7 +4,7 @@ module "linux_vanilla" {
   count  = 1
   source = "./ec2s/linux/vanilla"
 
-  name              = "dev"
+  name              = "build"
   ami               = "ami-079cb33ef719a7b78"
   type              = "t3.xlarge"
   security_group_id = aws_security_group.ssh.id
@@ -13,6 +13,7 @@ module "linux_vanilla" {
 
   instance_profile_name = aws_iam_instance_profile.kamekai_build_box.name
 }
+
 output "linux_vanilla_dns" {
   value       = module.linux_vanilla[*].public_dns
   description = "Public dev DNS"

@@ -133,7 +133,7 @@ data "aws_iam_policy_document" "kamekai_build_box_trust" {
 }
 
 resource "aws_iam_policy" "kamekai_build_box" {
-  name        = "dcv"
+  name        = "kamekai-build-box"
   description = "Build box for Kamekai"
   policy      = data.aws_iam_policy_document.kamekai_build_box.json
 }

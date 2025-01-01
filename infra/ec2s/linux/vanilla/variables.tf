@@ -29,7 +29,7 @@ variable "ec2_key_name" {
 
 variable "volume_size" {
   type    = number
-  default = 135
+  default = 10
 }
 
 variable "instance_profile_name" {
