@@ -1,6 +1,6 @@
 # Infra
 
-```
+```sh
 . ./setup_env_vars.sh
 
 ./run-cmd-in-shell.sh terraform init
@@ -9,12 +9,25 @@
 ```
 
 To clean up
-```
+```sh
 ./run-cmd-in-shell.sh terraform destroy -auto-approve
 ```
 
 To test the app
-```
+```sh
 curl https://api.seafoodfry.ninja/translate -X POST -H "Content-Type: application/json" \
     -d '{"text":"meant to be"}' | jq .
+```
+
+```sh
+rsync -rvzP ../backend ec2-user@${EC2}:/home/ec2-user/src
+```
+
+```sh
+tmux new -s kamekai
+
+#...
+
+tmux detach
+tmux ls
 ```

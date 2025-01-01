@@ -1,0 +1,19 @@
+# Used the following query to find the latest AMI:
+# ./run-cmd-in-shell.sh aws ec2 describe-images --region us-east-1 --owners 099720109477 --filters "Name=platform-details,Values=Linux/UNIX" "Name=architecture,Values=x86_64" "Name=creation-date,Values=2024-12-*" "Name=description,Values=*Ubuntu*" --query 'Images[?!contains(Description, `EKS`) && !contains(Description,`UNSUPPORTED`) && contains(Description, `"24.04"`) ]' > out.json
+module "linux_vanilla" {
+  count  = 1
+  source = "./ec2s/linux/vanilla"
+
+  name              = "dev"
+  ami               = "ami-079cb33ef719a7b78"
+  type              = "t3.xlarge"
+  security_group_id = aws_security_group.ssh.id
+  subnet_id         = module.vpc.public_subnets[0]
+  ec2_key_name      = var.ec2_key_name
+
+  instance_profile_name = aws_iam_instance_profile.kamekai_build_box.name
+}
+output "linux_vanilla_dns" {
+  value       = module.linux_vanilla[*].public_dns
+  description = "Public dev DNS"
+}

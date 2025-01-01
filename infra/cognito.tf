@@ -118,7 +118,7 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
 
   callback_urls = [
-    "kamekai://auth/callback",            # Desktop app custom protocol.
+    "kamekai://auth/callback", # Desktop app custom protocol.
     "tauri://com.kamekai.app/auth/callback",
     "http://localhost:1420/auth/callback", # Local development.
   ]
