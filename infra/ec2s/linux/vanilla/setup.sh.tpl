@@ -40,9 +40,11 @@ do_install_docker() {
 
 do_install_rust() {
     # Installation instructions come from https://www.rust-lang.org/tools/install
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 }
 
+sudo apt-get update -y
+sudo apt-get install -y make
 
 if [ "${install_docker}" = "true" ]; then
     do_install_docker

@@ -24,6 +24,8 @@ rsync -rvzP ../backend ec2-user@${EC2}:/home/ec2-user/src
 ```
 
 ```sh
+ssh ubuntu@${EC2}
+
 tmux new -s kamekai
 
 #...
