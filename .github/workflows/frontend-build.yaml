@@ -37,6 +37,9 @@ jobs:
           APP_VERSION=$(cat src-tauri/tauri.conf.json| jq -r '.version')
           echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
           echo "APP_VERSION=${APP_VERSION}"
+      - name: Sign DMG
+        run: |
+          codesign --force --sign - ./src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/kamekai_${{ env.APP_VERSION }}_aarch64.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: kamekai_${{ env.APP_VERSION }}_aarch64.dmg
