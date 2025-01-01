@@ -45,3 +45,8 @@ variable "install_rust" {
   type = bool
   default = true
 }
+
+variable "install_aws_cli" {
+  type = bool
+  default = true
+}
