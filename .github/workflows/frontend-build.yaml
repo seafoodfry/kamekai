@@ -1,0 +1,46 @@
+name: "Frontend Build"
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Frontend Build
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ./kamekai
+    steps:
+      - uses: actions/checkout@v4
+      # See
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
+      - name: Set a Remainder about the Version
+        run: |
+          echo "::notice file=./src-tauri/tauri.conf.json,line=4,col=15,endColumn=19::This will be the version used for the build"
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: aarch64-apple-darwin
+          components: rustfmt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install jq
+        run: brew install jq
+      - name: Build Apple Disk Image for M chips
+        run: |
+          corepack enable pnpm
+          corepack use pnpm@latest
+          make release
+      # See
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
+      - name: Get App Version (needed to find the build)
+        run: |
+          APP_VERSION=$(cat src-tauri/tauri.conf.json| jq -r '.version')
+          echo "APP_VERSION=${APP_VERSION}" >> $GITHUB_ENV
+          echo "APP_VERSION=${APP_VERSION}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kamekai_${{ env.APP_VERSION }}_aarch64.dmg
+          path: ./kamekai/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/kamekai_${{ env.APP_VERSION }}_aarch64.dmg
+          if-no-files-found: error
+          retention-days: 1
+

@@ -25,3 +25,9 @@ updates:
     directory: "/infra"
     schedule:
       interval: "weekly"
+
+  # CI.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
