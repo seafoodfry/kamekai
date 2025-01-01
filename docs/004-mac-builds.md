@@ -14,9 +14,10 @@ source=no usable signature
 
 The `codesign --force --sign - kamekai_${{ env.APP_VERSION }}_aarch64.dmg` results in
 ```sh
-ls -l@
-...
--rw-r--r--@ 1 ... kamekai_2.0.1_aarch64.dmg
+ls -l@ kamekai_2.0.1_aarch64.dmg 
+-rw-r--r--@ 1  3000838 Jan  1  2025 kamekai_2.0.1_aarch64.dmg
+	com.apple.quarantine	     21 
+
 ```
 
 The quarantine is removed with
