@@ -8,7 +8,7 @@ help:  ## Display this help message
 ##@ Release Commands
 .PHONY: release
 release: qa
-	pnpm tauri build
+	pnpm tauri build --target aarch64-apple-darwin
 
 ##@ Local Development
 .PHONY: run

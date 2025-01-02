@@ -106,3 +106,65 @@ data "aws_iam_policy_document" "kamekai" {
     resources = ["*"]
   }
 }
+
+#################
+# EC2 Build Box #
+#################
+resource "aws_iam_instance_profile" "kamekai_build_box" {
+  name = "kamekai-build-box"
+  role = aws_iam_role.kamekai_build_box.name
+}
+
+resource "aws_iam_role" "kamekai_build_box" {
+  name               = "kamekai-build-box"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.kamekai_build_box_trust.json
+}
+
+data "aws_iam_policy_document" "kamekai_build_box_trust" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_policy" "kamekai_build_box" {
+  name        = "kamekai-build-box"
+  description = "Build box for Kamekai"
+  policy      = data.aws_iam_policy_document.kamekai_build_box.json
+}
+
+
+resource "aws_iam_role_policy_attachment" "kamekai_build_box" {
+  role       = aws_iam_role.kamekai_build_box.name
+  policy_arn = aws_iam_policy.kamekai_build_box.arn
+}
+
+data "aws_iam_policy_document" "kamekai_build_box" {
+  statement {
+    sid = "ReadPrivateEcr"
+    actions = [
+      "ecr:CompleteLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:InitiateLayerUpload",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:PutImage",
+      "ecr:BatchGetImage",
+      "ecr:DescribeImages",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+    resources = [aws_ecr_repository.kamekai.arn]
+  }
+
+  statement {
+    sid = "AuthPrivateEcr"
+    actions = [
+      "ecr:GetAuthorizationToken",
+    ]
+    resources = ["*"]
+  }
+}

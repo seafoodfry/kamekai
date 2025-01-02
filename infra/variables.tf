@@ -14,3 +14,8 @@ variable "my_ip" {
   type      = string
   sensitive = true
 }
+
+variable "ec2_key_name" {
+  type    = string
+  default = "numerical-recipes"
+}

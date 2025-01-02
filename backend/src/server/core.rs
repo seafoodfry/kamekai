@@ -1,4 +1,5 @@
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
+use axum::http::HeaderValue;
 use axum::http::Method;
 use axum::{
     extract::{ConnectInfo, MatchedPath},
@@ -10,7 +11,7 @@ use axum::{
 use std::{net::SocketAddr, time::Duration};
 use tokio::net::TcpListener;
 use tokio::signal;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
@@ -107,7 +108,10 @@ pub async fn run_server(
 
     // build our application with our routes.
     let cors = CorsLayer::new()
-        .allow_origin(Any)
+        .allow_origin([
+            HeaderValue::from_static("tauri://com.kamekai.app"), // Production.
+            HeaderValue::from_static("https://app.seafoodfry.ninja"), // Web client.
+        ])
         .allow_methods([Method::POST, Method::OPTIONS])
         .allow_headers([AUTHORIZATION, CONTENT_TYPE])
         .allow_credentials(true)
