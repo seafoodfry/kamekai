@@ -25,6 +25,23 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
+      - uses: octokit/request-action@v2.x
+        id: get_pr
+        with:
+          # See
+          # https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
+          route: GET /repos/{owner}/{repo}/pulls/{pull_number}
+          owner: ${{ github.event.repository.owner.login }}
+          repo: ${{ github.event.repository.name }}
+          pull_number: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: "echo latest release: '${{ steps.get_pr.outputs.data }}'"
+      - name: Dump PR metadata
+        env:
+          PR_CONTEXT: ${{ toJson(steps.get_pr.outputs.data) }}
+        run: echo "$PR_CONTEXT"
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.issue.pull_request.url }}
