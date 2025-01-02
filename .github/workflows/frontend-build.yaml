@@ -1,6 +1,7 @@
 name: "Frontend Build"
 on:
-  pull_request:
+  issue_comment:
+    types: [created]
 
 jobs:
   build:
@@ -9,6 +10,7 @@ jobs:
     defaults:
       run:
         working-directory: ./kamekai
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/test') }}
     steps:
       - uses: actions/checkout@v4
       # See
