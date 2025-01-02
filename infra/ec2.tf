@@ -10,6 +10,7 @@ module "build_box" {
   security_group_id = aws_security_group.ssh.id
   subnet_id         = module.vpc.public_subnets[0]
   ec2_key_name      = var.ec2_key_name
+  volume_size       = 20
 
   instance_profile_name = aws_iam_instance_profile.kamekai_build_box.name
 }

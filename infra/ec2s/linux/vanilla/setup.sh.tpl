@@ -130,7 +130,7 @@ fi
 
 mkdir -p /src/
 git clone https://github.com/seafoodfry/kamekai.git /home/$USERNAME/kamekai
-sudo chown -R ${USERNAME}:${USERNAME} /home/$$USERNAME/kamekai
+sudo chown -R ${USERNAME}:${USERNAME} /home/$USERNAME/kamekai
 
 
 date > /home/$USERNAME/CLOUDINIT-COMPLETED
