@@ -1,7 +1,7 @@
 import { useAuth } from 'react-oidc-context';
 import { Button } from '@/components/ui/button';
 import { Home, Loader2 } from 'lucide-react';
-import { error } from '@tauri-apps/plugin-log';
+import { error, info } from '@tauri-apps/plugin-log';
 import { getLogoutUrl } from '@/config/auth';
 import { JWTDisplay } from '@/components/JWTDisplay';
 
@@ -11,6 +11,17 @@ interface AuthStatusProps {
 
 export const AuthStatus = ({ onBack }: AuthStatusProps) => {
   const auth = useAuth();
+
+  // eslint-disable-next-line no-console
+  console.log('AuthStatus current URL:', window.location.href);
+
+  info(
+    `Auth status: ${JSON.stringify({
+      isAuthenticated: auth.isAuthenticated,
+      isLoading: auth.isLoading,
+      error: auth.error,
+    })}`
+  );
 
   if (auth.isLoading) {
     return (
