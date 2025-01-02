@@ -17,20 +17,22 @@ jobs:
         working-directory: ./kamekai
     if: ${{ github.actor == 'seafoodfry' && github.event.issue.pull_request && contains(github.event.comment.body, '/test') }}
     steps:
+      - uses: actions/checkout@v4
+      # See
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - uses: octokit/request-action@v2.x
-        id: get_pr
-        with:
-          route: GET /repos/{owner}/{repo}/releases/latest
-          owner: octokit
-          repo: request-action
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: "echo latest release: '${{ steps.get_latest_release.outputs.data }}'"
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.issue.pull_request.url }}
+      - name: Check ref
+        run: |
+          git log -n1
+          git branch
+
       # See
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
       - name: Set a Remainder about the Version
