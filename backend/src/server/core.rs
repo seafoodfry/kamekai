@@ -109,7 +109,7 @@ pub async fn run_server(
     // build our application with our routes.
     let cors = CorsLayer::new()
         .allow_origin([
-            HeaderValue::from_static("tauri://com.kamekai.app"), // Production.
+            HeaderValue::from_static("tauri://localhost"), // Desktop.
             HeaderValue::from_static("https://app.seafoodfry.ninja"), // Web client.
         ])
         .allow_methods([Method::POST, Method::OPTIONS])

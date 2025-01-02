@@ -39,3 +39,22 @@ tmux new -s kamekai
 tmux detach
 tmux ls
 ```
+
+---
+## Storage
+
+```
+df -h
+```
+
+```
+df -ih
+```
+
+```
+sudo du --max-depth=1 -h [--inodes] /
+```
+
+```
+sudo du --max-depth=1 -h /var/lib/docker | sort -h
+```

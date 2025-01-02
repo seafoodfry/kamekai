@@ -118,15 +118,13 @@ resource "aws_cognito_user_pool_client" "desktop_client" {
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
 
   callback_urls = [
-    "kamekai://auth/callback", # Desktop app custom protocol.
-    "tauri://com.kamekai.app/auth/callback",
-    "http://localhost:1420/auth/callback", # Local development.
+    "tauri://localhost",
+    #"http://localhost:1420/auth/callback",
   ]
 
   logout_urls = [
-    "kamekai://auth/logout",
-    "tauri://com.kamekai.app/auth/logout",
-    "http://localhost:1420/auth/logout",
+    "tauri://localhost",
+    #"http://localhost:1420/auth/logout",
   ]
 
   prevent_user_existence_errors = "ENABLED"

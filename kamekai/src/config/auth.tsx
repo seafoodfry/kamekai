@@ -1,8 +1,8 @@
 export const cognitoConfig = {
-  authority: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_RIfjoPiFg',
-  client_id: '79etm593hkt3a1f9jftuptubap',
-  redirect_uri: 'tauri://com.kamekai.app/auth/callback',
-  logout_uri: 'tauri://com.kamekai.app/auth/logout',
+  authority: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_aJhnM0LYP',
+  client_id: '2cqa15rd1rq8351b128a7jhuq1',
+  redirect_uri: 'tauri://localhost', //'tauri://com.kamekai.app/auth/callback',
+  logout_uri: 'tauri://localhost', //'tauri://com.kamekai.app/auth/logout',
   domain: 'auth.seafoodfry.ninja',
 };
 

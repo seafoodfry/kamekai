@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { TextProcessing } from './pages/TextProcessing';
 import { AuthStatus } from './pages/AuthStatus';
 import { useAuth } from 'react-oidc-context';
+import { info } from '@tauri-apps/plugin-log';
 import './App.css';
 
 function App() {
@@ -11,6 +12,17 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
 
   const auth = useAuth();
+
+  // eslint-disable-next-line no-console
+  console.log('Current URL:', window.location.href);
+  info(
+    `App: ${JSON.stringify({
+      isAuthenticated: auth.isAuthenticated,
+      activeNavigator: auth.activeNavigator,
+      isLoading: auth.isLoading,
+      error: auth.error,
+    })}`
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

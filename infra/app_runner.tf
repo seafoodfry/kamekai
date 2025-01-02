@@ -8,7 +8,7 @@ resource "aws_apprunner_service" "kamekai" {
 
     image_repository {
       image_repository_type = "ECR"
-      image_identifier      = "${aws_ecr_repository.kamekai.repository_url}:1.0.2-b96981db-dirty"
+      image_identifier      = "${aws_ecr_repository.kamekai.repository_url}:1.0.2-85920259"
 
       image_configuration {
         port = "8080"
