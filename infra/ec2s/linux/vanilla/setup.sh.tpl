@@ -37,13 +37,19 @@ do_install_docker() {
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # Post installation instructions come from https://docs.docker.com/engine/install/linux-postinstall/
-    sudo groupadd docker
-    sudo usermod -aG docker $USER
+    # Ensure the docker group exists.
+    if ! getent group docker > /dev/null; then
+        sudo groupadd docker
+    fi
+    sudo usermod -aG docker $USERNAME
 }
 
 do_install_rust() {
     # Installation instructions come from https://www.rust-lang.org/tools/install
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    sudo -u $USERNAME bash -c "
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        echo '. ~/.cargo/env' >> ~/.bashrc
+    "
 }
 
 do_install_aws_cli() {
@@ -94,7 +100,7 @@ EOF
 
     # Install.
     unzip -u awscliv2.zip
-    ./aws/install
+    ./aws/install || ./aws/install --update
 
     # Clean up.
     cd /
@@ -123,7 +129,8 @@ else
 fi
 
 mkdir -p /src/
-git clone https://github.com/seafoodfry/kamekai.git /src/
+git clone https://github.com/seafoodfry/kamekai.git /home/$USERNAME/kamekai
+sudo chown -R ${USERNAME}:${USERNAME} /home/$$USERNAME/kamekai
 
 
 date > /home/$USERNAME/CLOUDINIT-COMPLETED

@@ -19,8 +19,14 @@ curl https://api.seafoodfry.ninja/translate -X POST -H "Content-Type: applicatio
     -d '{"text":"meant to be"}' | jq .
 ```
 
+To copy things:
 ```sh
-rsync -rvzP ../backend ec2-user@${EC2}:/home/ec2-user/src
+#ssh ubuntu@${EC2} -t 'mkdir -p /home/ubuntu/src'
+
+rsync -rvzP --exclude "target" ../backend/ ubuntu@${EC2}:/home/ubuntu/backend
+
+# or...
+scp ../backend/publish-in-linux.sh ubuntu@${EC2}:/home/ubuntu/kamekai/backend
 ```
 
 ```sh
