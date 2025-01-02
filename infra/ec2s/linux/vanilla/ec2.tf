@@ -1,8 +1,9 @@
 
 locals {
   vars = {
-    install_docker = var.install_docker
-    install_rust = var.install_rust
+    USERNAME        = "ubuntu"
+    install_docker  = var.install_docker
+    install_rust    = var.install_rust
     install_aws_cli = var.install_aws_cli
   }
 }

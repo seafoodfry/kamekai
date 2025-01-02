@@ -37,16 +37,16 @@ variable "instance_profile_name" {
 }
 
 variable "install_docker" {
-  type = bool
+  type    = bool
   default = true
 }
 
 variable "install_rust" {
-  type = bool
+  type    = bool
   default = true
 }
 
 variable "install_aws_cli" {
-  type = bool
+  type    = bool
   default = true
 }
