@@ -45,9 +45,11 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '👋 CI is running...'
+              body: '👋 CI is running!'
             })
 
+      - name: Dump PR ref
+        run: "echo checking out ref: '${{ steps.pr.outputs.data.head.ref }}'"
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.pr.outputs.data.head.ref }}
