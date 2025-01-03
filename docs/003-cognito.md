@@ -233,3 +233,164 @@ function App() {
   
 export default App;
 ```
+
+
+---
+# Backend
+
+
+```sh
+curl https://cognito-idp.us-east-1.amazonaws.com/us-east-1_NipWF0bjs/.well-known/jwks.json | jq .
+```
+```json
+{
+  "keys": [
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "kid": "XfFX3LUezTscwo4DnRLxwMg6ND7Y4E3zDI2myYLoidE=",
+      "kty": "RSA",
+      "n": "...",
+      "use": "sig"
+    },
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "kid": "+DccI9o4Kr8AyOYKZ2QYYnb2AACO49lK1s7wb/sggeY=",
+      "kty": "RSA",
+      "n": "...",
+      "use": "sig"
+    }
+  ]
+}
+```
+
+`alg`, defined in 4.4 in RFC 7517.
+
+> The "alg" (algorithm) parameter identifies the algorithm intended for use with the key.
+> The values used should either be registered in the IANA "JSON Web Signature and Encryption Algorithms" registry
+> established by [JWA - RFC 7518] or be a value that contains a Collision-Resistant Name.
+
+`e`, defined in 6.3.1.2 in RFC 7518.
+
+> The "e" (exponent) parameter contains the exponent value for the RSA public key.
+> It is represented as a Base64urlUInt-encoded value.
+> For instance, when representing the value 65537, the octet sequence to be base64url-encoded MUST consist
+> of the three octets [1, 0, 1]; the resulting representation for this value is "AQAB".
+
+`kty`, defined in 6.1 in RFC 7518.
+Stands for Key TYpe.
+
+`n`, defined in 6.3.1.1 in RFC 7518.
+
+> The "n" (modulus) parameter contains the modulus value for the RSA public key.
+> It is represented as a Base64urlUInt-encoded value.
+> Note that implementers have found that some cryptographic libraries prefix an extra zero-valued octet to
+> the modulus representations they return, for instance, returning 257 octets for a 2048-bit key,
+> rather than 256.  Implementations using such libraries will need to take care to omit the extra octet from
+> the base64url-encoded representation.
+
+`use`, deinfed in 4.2. in RFC 7517.
+
+> "sig" (signature) or "enc" (encryption).
+
+
+JSON is Base64Url encoded to form the first part of the JWT.
+
+Header
+```json
+{ "kid": "XfFX3LUezTscwo4DnRLxwMg6ND7Y4E3zDI2myYLoidE=", "alg": "RS256" }
+```
+
+The `kid` is the key used to sign the JWT.
+
+JWTs can be signed using a secret (with the HMAC algorithm) or a public/private key pair using RSA or ECDSA.
+RS256 (RSA Signature with SHA-256) is an asymmetric algorithm that uses a public/private key pair. The identity provider has a private key to generate the signature.
+
+
+Payload:
+```json
+{ 
+  "at_hash": "xxxxxxxxx",
+  "sub": "USERID",
+  "email_verified": true,
+  "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_NipWF0bjs",
+  "cognito:username": "SAME AS USERID (SUB)",
+  "origin_jti": "token-revocation identifier",
+  "aud": "COGNITO_APP_ID",
+  "token_use": "id",
+  "auth_time": 1735924608,
+  "exp": 1735928208,
+  "iat": 1735924608,
+  "jti": "JWT ID TOKEN ID",
+  "email": "REDACTED"
+}
+```
+
+`at_hash`, defined in 3.1.3.6 ID Token on OIDC Core.
+This field is require on ID Token Claims when using the Authorization Code Flow:
+
+> OPTIONAL. Access Token hash value. Its value is the base64url encoding of the left-most half of the hash of the
+> octets of the ASCII representation of the access_token value, where the hash algorithm used is the hash
+> algorithm used in the alg Header Parameter of the ID Token's JOSE Header.
+> For instance, if the alg is RS256, hash the access_token value with SHA-256,
+> then take the left-most 128 bits and base64url-encode them. The at_hash value is a case-sensitive string.
+
+
+`sub`, defined in 4.1.2 in RFC 7519.
+This is the user ID in cognito.
+
+> The "sub" (subject) claim identifies the principal that is the subject of the JWT.
+> The claims in a JWT are normally statements about the subject. The subject value MUST either be scoped
+> to be locally unique in the context of the issuer or be globally unique. The processing of this claim is
+> generally application specific. The "sub" value is a case-sensitive string containing a StringOrURI
+> value. Use of this claim is OPTIONAL.
+>
+> Subject - Identifier for the End-User at the Issuer.
+
+`email_verified` is listed in 5.1 Standard Claims in OIDC Core.
+
+`iss`, defined in 4.1.1 in RFC 7519.
+
+> The "iss" (issuer) claim identifies the principal that issued the JWT.
+> The processing of this claim is generally application specific.
+
+`origin_jti`, an AWS cognito thing.
+
+> A token-revocation identifier associated with your user's refresh token. Amazon Cognito references the
+> origin_jti claim when it checks if you revoked your user's token with the Revoke endpoint or the RevokeToken API
+> operation. When you revoke a token, Amazon Cognito invalidates all access and ID tokens with the same
+> origin_jti value.
+
+
+`aud`, defined in 4.1.3 in RFC 7519.
+The user pool app client that authenticated your user.
+Amazon Cognito renders the same value in the access token client_id claim.
+
+> The "aud" (audience) claim identifies the recipients that the JWT is intended for.
+> Each principal intended to process the JWT MUST identify itself with a value in the audience claim.
+> If the principal processing the claim does not identify itself with a value in the "aud" claim when
+> this claim is present, then the JWT MUST be rejected.
+>
+> The Authorization Server MUST verify that it is an intended audience for the token.
+> The Audience SHOULD be the URL of the Authorization Server's Token Endpoint. [OIDC CORE]
+
+`jti`, defined in OIDC Core section 9.
+
+> JWT ID. A unique identifier for the token, which can be used to prevent reuse of the token.
+> These tokens MUST only be used once, unless conditions for reuse were negotiated between the parties;
+> any such negotiation is beyond the scope of this specification.
+
+## References
+
+1. [RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) - JSON Web Token (JWT)
+1. [RFC 7518](https://datatracker.ietf.org/doc/html/rfc7518) - JSON Web Algorithms (JWA)
+1. [RFC 7517](https://datatracker.ietf.org/doc/html/rfc7517) - JSON Web Key (JWK)
+1. [RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515) - JSON Web Signature (JWS)
+1. [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068) - JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
+1. [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html) – Defines the core OpenID Connect functionality: authentication built on top of OAuth 2.0 and the use of claims to communicate information about the End-User.
+1. [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) The OAuth 2.0 Authorization Framework
+1. [AWS Understanding the identity (ID) token](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html)
+
+And for additional reading:
+[REF 3447: Public-Key Cryptography Standards (PKCS) #1: RSA Cryptography Specifications Version 2.1](https://datatracker.ietf.org/doc/html/rfc3447).
