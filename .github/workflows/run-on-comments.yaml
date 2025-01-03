@@ -1,3 +1,7 @@
+# Checkout these other ways of doing this:
+#
+# 1. https://github.com/peter-evans/slash-command-dispatch
+# 2. https://github.com/imjohnbo/ok-to-test/tree/master
 name: "Run on Comments"
 on:
   issue_comment:
@@ -75,6 +79,9 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(needs.setup.outputs.pr).head.ref }}
       - name: Check ref
         run: |
           git log -n1
