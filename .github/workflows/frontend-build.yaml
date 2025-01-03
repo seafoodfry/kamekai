@@ -26,7 +26,7 @@ jobs:
         run: echo "$GITHUB_CONTEXT"
 
       - uses: octokit/request-action@v2.x
-        id: get_pr
+        id: pr
         with:
           # See
           # https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request
@@ -36,19 +36,26 @@ jobs:
           pull_number: ${{ github.event.issue.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: "echo latest release: '${{ steps.get_pr.outputs.data }}'"
-      - name: Dump PR metadata
-        env:
-          PR_CONTEXT: ${{ toJson(steps.get_pr.outputs.data) }}
-        run: echo "$PR_CONTEXT"
+      - name: Dump PR metadata raw
+        run: "echo latest release: '${{ steps.pr.outputs.data }}'"
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 CI is running...'
+            })
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.issue.pull_request.url }}
+          ref: ${{ steps.pr.outputs.data.head.ref }}
       - name: Check ref
         run: |
           git log -n1
           git branch
+
 
       # See
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
