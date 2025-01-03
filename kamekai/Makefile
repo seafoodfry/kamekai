@@ -7,11 +7,11 @@ help:  ## Display this help message
 
 ##@ Release Commands
 .PHONY: build
-build: qa
+build: qa  ## Make a production build
 	pnpm tauri build --target aarch64-apple-darwin
 
 .PHONY: build-dev
-build-dev: qa
+build-dev: qa  ## Make build with the debug option on
 	pnpm tauri build --debug --target aarch64-apple-darwin
 
 ##@ Local Development

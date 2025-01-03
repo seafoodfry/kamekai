@@ -1,0 +1,38 @@
+name: "Backend Build"
+on:
+  pull_request_review:
+    types: [submitted]
+
+
+jobs:
+  build:
+    name: Backend Build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      # See
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      # See
+      # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
+      - name: Set a Remainder about the Version
+        run: |
+          echo "::notice file=./Cargo.toml,line=3,col=12,endColumn=16::This will be the version used for the build"
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+
+      - name: Install QA deps
+        run: |
+          cargo install cargo-audit --locked
+
+      - name: Build Container Image
+        run: |
+          make build
