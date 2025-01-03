@@ -79,6 +79,9 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(needs.setup.outputs.pr).head.ref }}
       - name: Check ref
         run: |
           git log -n1
