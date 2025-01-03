@@ -58,7 +58,6 @@ jobs:
           git log -n1
           git branch
 
-
       # See
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
       - name: Set a Remainder about the Version
