@@ -82,6 +82,7 @@ pub async fn run_server(
     host: String,
     port: u16,
     enable_ansi: bool,
+    request_timeout: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing.
     tracing_subscriber::registry()
@@ -124,7 +125,7 @@ pub async fn run_server(
         .route("/translate", post(handle_translate))
         .route("/health", get(handle_health))
         .layer(cors) // Need to respond to preflight requests before other middleware interferes/changes headers.
-        .layer(TimeoutLayer::new(Duration::from_secs(60)))
+        .layer(TimeoutLayer::new(Duration::from_secs(request_timeout)))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &Request<_>| {

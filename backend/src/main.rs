@@ -6,7 +6,7 @@ use backend::{create_conversation, AppError};
 
 #[derive(Parser)]
 #[command(version)]
-#[command(about = "Kamkai bckend")]
+#[command(about = "Kamkai backend")]
 struct Cli {
     /// Optional name to operate on
     name: Option<String>,
@@ -33,6 +33,9 @@ enum Commands {
 
         #[arg(long, env = "APP_ENABLE_ANSI_LOGS", default_value = "true")]
         enable_ansi: bool,
+
+        #[arg(long, short, env = "APP_REQ_TIMEOUT", default_value_t = 60)]
+        request_timeout: u64,
     },
 }
 
@@ -48,8 +51,9 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             port,
             host,
             enable_ansi,
+            request_timeout,
         }) => {
-            run_server(host, port, enable_ansi)
+            run_server(host, port, enable_ansi, request_timeout)
                 .await
                 .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
         }
