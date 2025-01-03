@@ -1,6 +1,6 @@
 [hooks]
 pre-commit = "sh pre-commit"
-post-commit = "post-commi && echo yay"
+post-commit = "sh post-commit && echo yay"
 pre-push = "sh pre-push"
 
 [logging]
