@@ -1,14 +1,14 @@
-use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
-use axum::http::HeaderValue;
-use axum::http::Method;
+use anyhow::Result;
+use axum::http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
+use axum::http::{HeaderValue, Method, Request};
 use axum::{
     extract::{ConnectInfo, MatchedPath},
-    http::{header, Request},
+    middleware,
     response::Response,
     routing::{get, post},
     Router,
 };
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::cors::CorsLayer;
@@ -17,6 +17,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use super::auth::{verify_jwt, JwkManager};
 use super::handlers::{handle_health, handle_translate};
 
 async fn shutdown_signal() {
@@ -83,7 +84,9 @@ pub async fn run_server(
     port: u16,
     enable_ansi: bool,
     request_timeout: u64,
-) -> Result<(), Box<dyn std::error::Error>> {
+    cognito_user_pool: String,
+    cognito_client_id: String,
+) -> Result<()> {
     // Initialize tracing.
     tracing_subscriber::registry()
         .with(
@@ -121,9 +124,19 @@ pub async fn run_server(
     ])
         .max_age(Duration::from_secs(3600));
 
-    let app = Router::new()
+    // Get the JWKs so that we can enforce AuthN/Z.
+    let jwk_manager = Arc::new(JwkManager::new(cognito_user_pool, cognito_client_id).await?);
+
+    let protected_routes = Router::new()
         .route("/translate", post(handle_translate))
-        .route("/health", get(handle_health))
+        .layer(middleware::from_fn_with_state(
+            Arc::clone(&jwk_manager),
+            verify_jwt,
+        ));
+
+    let app = Router::new()
+        .nest("/", protected_routes)
+        .route("/healthz", get(handle_health))
         .layer(cors) // Need to respond to preflight requests before other middleware interferes/changes headers.
         .layer(TimeoutLayer::new(Duration::from_secs(request_timeout)))
         .layer(
@@ -166,14 +179,14 @@ pub async fn run_server(
                 .on_response(|response: &Response, latency: Duration, span: &Span| {
                     let size = response
                         .headers()
-                        .get(header::CONTENT_LENGTH)
+                        .get(CONTENT_LENGTH)
                         .and_then(|v| v.to_str().ok())
                         .and_then(|v| v.parse::<usize>().ok())
                         .unwrap_or(0);
 
                     let content_type = response
                         .headers()
-                        .get(header::CONTENT_TYPE)
+                        .get(CONTENT_TYPE)
                         .and_then(|v| v.to_str().ok())
                         .unwrap_or("unknown");
 

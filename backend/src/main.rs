@@ -36,6 +36,12 @@ enum Commands {
 
         #[arg(long, short, env = "APP_REQ_TIMEOUT", default_value_t = 60)]
         request_timeout: u64,
+
+        #[arg(long, short, env = "APP_USER_POOL")]
+        cognito_user_pool: String,
+
+        #[arg(long, short, env = "APP_CLIENT_ID")]
+        cognito_client_id: String,
     },
 }
 
@@ -52,10 +58,19 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             host,
             enable_ansi,
             request_timeout,
+            cognito_user_pool,
+            cognito_client_id,
         }) => {
-            run_server(host, port, enable_ansi, request_timeout)
-                .await
-                .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
+            run_server(
+                host,
+                port,
+                enable_ansi,
+                request_timeout,
+                cognito_user_pool,
+                cognito_client_id,
+            )
+            .await
+            .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
         }
         None => {
             println!("No subcommand provided. Run with the -h flag to see usage.");
