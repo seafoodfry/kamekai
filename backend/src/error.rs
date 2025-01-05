@@ -1,3 +1,4 @@
+use anyhow::Error as AnyhowError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,4 +14,7 @@ pub enum AppError {
 
     #[error("Server error: {0}")]
     Server(String),
+
+    #[error(transparent)]
+    Cognito(#[from] AnyhowError),
 }

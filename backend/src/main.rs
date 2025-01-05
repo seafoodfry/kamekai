@@ -4,6 +4,8 @@ use backend::server::run_server;
 use backend::Language;
 use backend::{create_conversation, AppError};
 
+mod cognito;
+
 #[derive(Parser)]
 #[command(version)]
 #[command(about = "Kamkai backend")]
@@ -36,6 +38,9 @@ enum Commands {
 
         #[arg(long, short, env = "APP_REQ_TIMEOUT", default_value_t = 60)]
         request_timeout: u64,
+
+        #[arg(long, short, env = "APP_USER_POOL")]
+        cognito_user_pool: String,
     },
 }
 
@@ -52,7 +57,12 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             host,
             enable_ansi,
             request_timeout,
+            cognito_user_pool,
         }) => {
+            let _jwks = cognito::get_jwks(&cognito_user_pool)
+                .await
+                .map_err(AppError::Cognito);
+
             run_server(host, port, enable_ansi, request_timeout)
                 .await
                 .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
