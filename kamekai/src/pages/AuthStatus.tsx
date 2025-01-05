@@ -16,6 +16,10 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
   console.log('AuthStatus current url:', window.location.href);
   // eslint-disable-next-line no-console
   console.log('auth navigator:', auth.activeNavigator);
+  // eslint-disable-next-line no-console
+  console.log('auth user profile:', auth.user);
+  // eslint-disable-next-line no-console
+  console.log('auth user profile:', auth.user?.profile);
   info(
     `Auth status: ${JSON.stringify({
       isAuthenticated: auth.isAuthenticated,
