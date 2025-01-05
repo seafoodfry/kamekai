@@ -4,6 +4,7 @@ import { Copy, Check } from 'lucide-react';
 
 interface JWTDisplayProps {
   token?: string;
+  label: string;
 }
 
 interface DecodedJWT {
@@ -11,7 +12,7 @@ interface DecodedJWT {
   payload: unknown;
 }
 
-export const JWTDisplay: React.FC<JWTDisplayProps> = ({ token }) => {
+export const JWTDisplay: React.FC<JWTDisplayProps> = ({ token, label }) => {
   const [showDecoded, setShowDecoded] = useState(false);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
@@ -54,7 +55,7 @@ export const JWTDisplay: React.FC<JWTDisplayProps> = ({ token }) => {
     <div className="space-y-2">
       <div className="text-xs text-gray-500">
         <div className="flex items-center justify-between">
-          <div>ID Token:</div>
+          <div>{label}:</div>
           <button
             onClick={() => setShowDecoded(!showDecoded)}
             className="text-blue-500 hover:text-blue-400 text-xs"
@@ -63,20 +64,27 @@ export const JWTDisplay: React.FC<JWTDisplayProps> = ({ token }) => {
           </button>
         </div>
         {!showDecoded ? (
-          <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono">
+          <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono flex items-center justify-between">
+            <span className="text-gray-300 flex-grow">{token || 'No token available'}</span>
             <CopyButton text={token || 'No token available'} />
           </div>
         ) : (
           <div className="space-y-2">
             <div>
               <div className="text-blue-400 mt-2">Header:</div>
-              <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono">
+              <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono flex items-center justify-between">
+                <span className="text-gray-300 flex-grow">
+                  {JSON.stringify(decoded?.header, null, 2)}
+                </span>
                 <CopyButton text={JSON.stringify(decoded?.header, null, 2)} />
               </div>
             </div>
             <div>
               <div className="text-blue-400">Payload:</div>
-              <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono">
+              <div className="bg-gray-800 p-2 rounded mt-1 break-all font-mono flex items-center justify-between">
+                <span className="text-gray-300 flex-grow">
+                  {JSON.stringify(decoded?.payload, null, 2)}
+                </span>
                 <CopyButton text={JSON.stringify(decoded?.payload, null, 2)} />
               </div>
             </div>

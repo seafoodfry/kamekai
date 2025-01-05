@@ -17,7 +17,7 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
   // eslint-disable-next-line no-console
   console.log('auth navigator:', auth.activeNavigator);
   // eslint-disable-next-line no-console
-  console.log('auth user profile:', auth.user);
+  console.log('auth user:', auth.user);
   // eslint-disable-next-line no-console
   console.log('auth user profile:', auth.user?.profile);
   info(
@@ -57,7 +57,9 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
         )}
 
         <div className="text-sm text-gray-400">Logged in as: {auth.user?.profile.email}</div>
-        <JWTDisplay token={auth.user?.id_token} />
+        <JWTDisplay token={auth.user?.id_token} label="ID Token" />
+        <JWTDisplay token={auth.user?.access_token} label="Access Token" />
+        <JWTDisplay token={auth.user?.refresh_token} label="Refresh Token" />
 
         <Button
           onClick={() => {
