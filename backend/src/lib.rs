@@ -6,6 +6,7 @@ use tracing_subscriber::{
 };
 
 pub mod aws;
+pub mod cognito;
 pub mod conversation;
 pub mod error;
 pub mod language;

@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use axum::{extract::Json, http::StatusCode, response::IntoResponse};
+use axum::{extract::Extension, extract::Json, http::StatusCode, response::IntoResponse};
 use serde_json::json;
 
 use crate::{
@@ -11,13 +11,21 @@ use crate::{
     },
 };
 
+use super::auth::JWTClaims;
+
 pub async fn handle_health() -> impl IntoResponse {
     (StatusCode::OK, Json(json!({ "status": "healthy" }))).into_response()
 }
 
-pub async fn handle_translate(Json(payload): Json<TranslationRequest>) -> impl IntoResponse {
+pub async fn handle_translate(
+    Extension(claims): Extension<JWTClaims>,
+    Json(payload): Json<TranslationRequest>,
+) -> impl IntoResponse {
     match process_translation(&payload.text).await {
-        Ok(response) => (StatusCode::OK, Json(response)).into_response(),
+        Ok(response) => {
+            tracing::info!("processing request from {}", claims.sub);
+            (StatusCode::OK, Json(response)).into_response()
+        }
         Err(e) => {
             // Log the full error chain.
             tracing::error!(

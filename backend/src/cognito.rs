@@ -9,12 +9,12 @@ pub struct CognitoJWKS {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Jwk {
-    kid: String,
-    kty: String,
-    alg: String,
-    n: String,
-    e: String,
-    r#use: String,
+    pub kid: String,
+    pub kty: String,
+    pub alg: String,
+    pub n: String,
+    pub e: String,
+    pub r#use: String,
 }
 
 pub async fn get_jwks(oidc_authority: &str) -> Result<CognitoJWKS> {
