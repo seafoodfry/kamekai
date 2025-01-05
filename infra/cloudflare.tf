@@ -36,41 +36,41 @@ resource "aws_apprunner_custom_domain_association" "api" {
   ]
 }
 
-# # Create App Runner validation records in Cloudflare.
-# resource "cloudflare_record" "apprunner_validation" {
-#   for_each = {
-#     for record in aws_apprunner_custom_domain_association.api.certificate_validation_records : record.name => {
-#       type  = record.type
-#       value = record.value
-#     }
-#   }
+# Create App Runner validation records in Cloudflare.
+resource "cloudflare_record" "apprunner_validation" {
+  for_each = {
+    for record in aws_apprunner_custom_domain_association.api.certificate_validation_records : record.name => {
+      type  = record.type
+      value = record.value
+    }
+  }
 
-#   zone_id = data.cloudflare_zone.domain.id
-#   name    = each.key
-#   content = each.value.value
-#   type    = each.value.type
-#   ttl     = 300
-#   proxied = false
-# }
+  zone_id = data.cloudflare_zone.domain.id
+  name    = each.key
+  content = each.value.value
+  type    = each.value.type
+  ttl     = 300
+  proxied = false
+}
 
-# # Create CNAME record for the App Runner domain in Cloudflare.
-# resource "cloudflare_record" "app_runner_domain" {
-#   zone_id         = data.cloudflare_zone.domain.id
-#   allow_overwrite = true
-#   name            = "api"
-#   type            = "CNAME"
-#   content         = aws_apprunner_custom_domain_association.api.dns_target
-#   ttl             = 60 # Must be 1 when proxied is enabled.
-#   # Do NOT turn it on, app runner and cloudflare will fight for HTTPS control and
-#   # you'll end with a TON of redirects.
-#   proxied = false
-#   comment = "App Runner domain"
+# Create CNAME record for the App Runner domain in Cloudflare.
+resource "cloudflare_record" "app_runner_domain" {
+  zone_id         = data.cloudflare_zone.domain.id
+  allow_overwrite = true
+  name            = "api"
+  type            = "CNAME"
+  content         = aws_apprunner_custom_domain_association.api.dns_target
+  ttl             = 60 # Must be 1 when proxied is enabled.
+  # Do NOT turn it on, app runner and cloudflare will fight for HTTPS control and
+  # you'll end with a TON of redirects.
+  proxied = false
+  comment = "App Runner domain"
 
-#   depends_on = [
-#     aws_apprunner_custom_domain_association.api,
-#     cloudflare_record.apprunner_validation
-#   ]
-# }
+  depends_on = [
+    aws_apprunner_custom_domain_association.api,
+    cloudflare_record.apprunner_validation
+  ]
+}
 
 ###############
 # Auth Domain #
