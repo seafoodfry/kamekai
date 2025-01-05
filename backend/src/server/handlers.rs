@@ -11,14 +11,14 @@ use crate::{
     },
 };
 
-use super::auth::JWTClaims;
+use super::auth::CognitoClaims;
 
 pub async fn handle_health() -> impl IntoResponse {
     (StatusCode::OK, Json(json!({ "status": "healthy" }))).into_response()
 }
 
 pub async fn handle_translate(
-    Extension(claims): Extension<JWTClaims>,
+    Extension(claims): Extension<CognitoClaims>,
     Json(payload): Json<TranslationRequest>,
 ) -> impl IntoResponse {
     match process_translation(&payload.text).await {

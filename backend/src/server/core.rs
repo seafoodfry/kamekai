@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use axum::http::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use axum::http::{HeaderValue, Method, Request};
 use axum::{
@@ -17,9 +17,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::cognito;
-
-use super::auth::verify_jwt;
+use super::auth::{verify_jwt, JwkManager};
 use super::handlers::{handle_health, handle_translate};
 
 async fn shutdown_signal() {
@@ -87,6 +85,7 @@ pub async fn run_server(
     enable_ansi: bool,
     request_timeout: u64,
     cognito_user_pool: String,
+    cognito_client_id: String,
 ) -> Result<()> {
     // Initialize tracing.
     tracing_subscriber::registry()
@@ -126,16 +125,12 @@ pub async fn run_server(
         .max_age(Duration::from_secs(3600));
 
     // Get the JWKs so that we can enforce AuthN/Z.
-    let jwks = cognito::get_jwks(&cognito_user_pool)
-        .await
-        .context("Error while initializing server")?;
-    let jwks = Arc::new(jwks);
-    tracing::info!("Using cognito JWKs {:?}", jwks);
+    let jwk_manager = Arc::new(JwkManager::new(cognito_user_pool, cognito_client_id).await?);
 
     let protected_routes = Router::new()
         .route("/translate", post(handle_translate))
         .layer(middleware::from_fn_with_state(
-            Arc::clone(&jwks),
+            Arc::clone(&jwk_manager),
             verify_jwt,
         ));
 
