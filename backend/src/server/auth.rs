@@ -4,7 +4,7 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -38,17 +38,41 @@ pub async fn verify_jwt(
     next: Next,
 ) -> Result<Response, StatusCode> {
     let token = extract_token(&req)?;
-    let validation = Validation::new(Algorithm::RS256);
 
-    for jwk in &jwks.keys {
-        let decoding_key = DecodingKey::from_rsa_components(&jwk.n, &jwk.e)
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let header = decode_header(token).map_err(|_| StatusCode::BAD_REQUEST)?;
 
-        if let Ok(token_data) = decode::<JWTClaims>(token, &decoding_key, &validation) {
-            req.extensions_mut().insert(token_data.claims);
-            return Ok(next.run(req).await);
-        }
-    }
+    let kid = header.kid.ok_or(StatusCode::BAD_REQUEST)?;
 
-    Err(StatusCode::UNAUTHORIZED)
+    let jwk = jwks
+        .keys
+        .iter()
+        .find(|k| k.kid == kid)
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    let mut validation = Validation::new(Algorithm::RS256);
+    validation.set_audience(&["7lkjn4ni4rpv1a6co5pgt20p79"]);
+    validation.set_required_spec_claims(&[
+        "sub",
+        "iss",
+        "client_id",
+        "origin_jti",
+        "event_id",
+        "token_use",
+        "scope",
+        "auth_time",
+        "exp",
+        "iat",
+        "username",
+    ]);
+
+    let decoding_key = DecodingKey::from_rsa_components(&jwk.n, &jwk.e)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let token_data = decode::<JWTClaims>(token, &decoding_key, &validation)
+        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+    // Store claims in request extensions for handlers to access.
+    req.extensions_mut().insert(token_data.claims);
+
+    Ok(next.run(req).await)
 }
