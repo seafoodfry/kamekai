@@ -1,3 +1,4 @@
+import { useAuth } from 'react-oidc-context';
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,13 +41,22 @@ export const TextProcessing: React.FC<TextProcessingProps> = ({ text, onBack }) 
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
+  const auth = useAuth();
+
   React.useEffect(() => {
     const fetchTranslations = async () => {
+      if (!auth.user?.access_token) {
+        setError('No valid authentication token');
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await fetch('https://api.seafoodfry.ninja/translate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${auth.user.access_token}`,
           },
           body: JSON.stringify({ text }),
         });
@@ -66,7 +76,7 @@ export const TextProcessing: React.FC<TextProcessingProps> = ({ text, onBack }) 
     };
 
     fetchTranslations();
-  }, [text]);
+  }, [text, auth.user?.access_token]);
 
   const handleCopy = async (text: string) => {
     try {
