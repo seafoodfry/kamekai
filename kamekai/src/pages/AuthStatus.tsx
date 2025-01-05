@@ -13,11 +13,13 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
   const auth = useAuth();
 
   // eslint-disable-next-line no-console
-  console.log('AuthStatus current URL:', window.location.href);
-
+  console.log('AuthStatus current url:', window.location.href);
+  // eslint-disable-next-line no-console
+  console.log('auth navigator:', auth.activeNavigator);
   info(
     `Auth status: ${JSON.stringify({
       isAuthenticated: auth.isAuthenticated,
+      activeNavigator: auth.activeNavigator,
       isLoading: auth.isLoading,
       error: auth.error,
     })}`

@@ -14,7 +14,9 @@ function App() {
   const auth = useAuth();
 
   // eslint-disable-next-line no-console
-  console.log('Current URL:', window.location.href);
+  console.log('current url:', window.location.href);
+  // eslint-disable-next-line no-console
+  console.log('auth navigator:', auth.activeNavigator);
   info(
     `App: ${JSON.stringify({
       isAuthenticated: auth.isAuthenticated,
