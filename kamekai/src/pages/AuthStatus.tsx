@@ -13,11 +13,17 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
   const auth = useAuth();
 
   // eslint-disable-next-line no-console
-  console.log('AuthStatus current URL:', window.location.href);
-
+  console.log('AuthStatus current url:', window.location.href);
+  // eslint-disable-next-line no-console
+  console.log('auth navigator:', auth.activeNavigator);
+  // eslint-disable-next-line no-console
+  console.log('auth user:', auth.user);
+  // eslint-disable-next-line no-console
+  console.log('auth user profile:', auth.user?.profile);
   info(
     `Auth status: ${JSON.stringify({
       isAuthenticated: auth.isAuthenticated,
+      activeNavigator: auth.activeNavigator,
       isLoading: auth.isLoading,
       error: auth.error,
     })}`
@@ -51,7 +57,9 @@ export const AuthStatus = ({ onBack }: AuthStatusProps) => {
         )}
 
         <div className="text-sm text-gray-400">Logged in as: {auth.user?.profile.email}</div>
-        <JWTDisplay token={auth.user?.id_token} />
+        <JWTDisplay token={auth.user?.id_token} label="ID Token" />
+        <JWTDisplay token={auth.user?.access_token} label="Access Token" />
+        <JWTDisplay token={auth.user?.refresh_token} label="Refresh Token" />
 
         <Button
           onClick={() => {

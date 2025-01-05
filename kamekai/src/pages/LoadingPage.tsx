@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+// import { Loader2 } from 'lucide-react';
 
 const loadingMessages = [
   'Still working on it...',
@@ -31,13 +31,17 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({ isLoading }) => {
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         // Slow down as we get higher.
-        const increment = Math.max(0.5, (100 - prev) * 0.1);
+        const slowDownPoint = 70;
+        const increment =
+          prev >= slowDownPoint
+            ? 0.1 // Square root for nonlinear slowdown.
+            : 1; // Fast before slowDownPoint.
         const newProgress = prev + increment;
         return newProgress >= 99 ? 99 : newProgress;
       });
     }, 100);
 
-    // Rotate messages
+    // Rotate messages.
     const messageInterval = setInterval(() => {
       setMessageIndex(prev => (prev + 1) % loadingMessages.length);
     }, 3000);
@@ -51,7 +55,7 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({ isLoading }) => {
   return (
     <div className="min-h-screen bg-[#1E1E1E] text-white flex flex-col items-center justify-center">
       <div className="relative flex flex-col items-center">
-        <Loader2 className="w-16 h-16 text-blue-500 animate-spin mb-8" />
+        {/* <Loader2 className="w-16 h-16 text-blue-500 animate-spin mb-8" /> */}
         <div className="space-y-2 text-center">
           <h3 className="text-2xl font-semibold">Translating your text</h3>
           <p className="text-gray-400 h-6 transition-all duration-300">
