@@ -31,12 +31,11 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({ isLoading }) => {
     const progressInterval = setInterval(() => {
       setProgress(prev => {
         // Slow down as we get higher.
-        const slowDownFactor = 0.1;
-        const slowDownPoint = 80;
+        const slowDownPoint = 70;
         const increment =
           prev >= slowDownPoint
-            ? Math.max(0.5, (100 - prev) ** slowDownFactor) // Square root for nonlinear slowdown.
-            : 5; // Fast before slowDownPoint.
+            ? 0.1 // Square root for nonlinear slowdown.
+            : 1; // Fast before slowDownPoint.
         const newProgress = prev + increment;
         return newProgress >= 99 ? 99 : newProgress;
       });
