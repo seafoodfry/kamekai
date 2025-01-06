@@ -10,6 +10,12 @@ variable "cloudflare_api_token" {
   sensitive   = true
 }
 
+variable "honeycomb_api_key" {
+  description = "Honeycomb API key"
+  type        = string
+  sensitive   = true
+}
+
 variable "my_ip" {
   type      = string
   sensitive = true
