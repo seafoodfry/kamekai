@@ -16,5 +16,5 @@ pub enum AppError {
     Server(String),
 
     #[error(transparent)]
-    Cognito(#[from] AnyhowError),
+    OpenTelemetry(#[from] AnyhowError),
 }

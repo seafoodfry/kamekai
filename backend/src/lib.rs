@@ -9,6 +9,7 @@ pub mod aws;
 pub mod conversation;
 pub mod error;
 pub mod language;
+pub mod otel;
 pub mod server;
 
 pub use conversation::builder::ConversationBuilder;
