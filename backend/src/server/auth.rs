@@ -138,7 +138,6 @@ pub struct CognitoClaims {
     exp: i64,
     iat: i64,
     jti: String,
-    email: String,
 }
 
 fn extract_token(req: &Request) -> Result<&str, StatusCode> {
@@ -215,20 +214,20 @@ pub async fn verify_jwt(
         }
     };
 
-    let validation = Validation::new(Algorithm::RS256);
-    // validation.set_required_spec_claims(&[
-    //     "sub",
-    //     "iss",
-    //     "client_id",
-    //     "origin_jti",
-    //     "event_id",
-    //     "token_use",
-    //     "scope",
-    //     "auth_time",
-    //     "exp",
-    //     "iat",
-    //     "username",
-    // ]);
+    let mut validation = Validation::new(Algorithm::RS256);
+    validation.set_required_spec_claims(&[
+        "sub",
+        "iss",
+        "client_id",
+        "origin_jti",
+        "event_id",
+        "token_use",
+        "scope",
+        "auth_time",
+        "exp",
+        "iat",
+        "username",
+    ]);
 
     let decoding_key = DecodingKey::from_rsa_components(&jwk.n, &jwk.e)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
