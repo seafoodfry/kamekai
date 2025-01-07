@@ -210,20 +210,20 @@ pub async fn verify_jwt(
         }
     };
 
-    let mut validation = Validation::new(Algorithm::RS256);
-    validation.set_required_spec_claims(&[
-        "sub",
-        "iss",
-        "client_id",
-        "origin_jti",
-        "event_id",
-        "token_use",
-        "scope",
-        "auth_time",
-        "exp",
-        "iat",
-        "username",
-    ]);
+    let validation = Validation::new(Algorithm::RS256);
+    // validation.set_required_spec_claims(&[
+    //     "sub",
+    //     "iss",
+    //     "client_id",
+    //     "origin_jti",
+    //     "event_id",
+    //     "token_use",
+    //     "scope",
+    //     "auth_time",
+    //     "exp",
+    //     "iat",
+    //     "username",
+    // ]);
 
     let decoding_key = DecodingKey::from_rsa_components(&jwk.n, &jwk.e)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
