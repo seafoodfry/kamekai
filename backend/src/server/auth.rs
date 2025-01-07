@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 use tokio::sync::RwLock;
+use tracing::{info, instrument, warn};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JsonWebKeySet {
@@ -155,25 +156,59 @@ fn extract_token(req: &Request) -> Result<&str, StatusCode> {
     Ok(&auth_header[7..])
 }
 
+#[instrument(
+    name = "verify_jwt", 
+    fields(client_id = %jwk_manager.get_client_id()),
+    skip(jwk_manager, req, next),  // Skip complex types
+    err
+)]
 pub async fn verify_jwt(
     State(jwk_manager): State<Arc<JwkManager>>,
     mut req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let token = extract_token(&req)?;
+    let token = match extract_token(&req) {
+        Ok(t) => {
+            info!("token extracted successfully");
+            t
+        }
+        Err(status) => {
+            warn!("token extraction failed");
+            return Err(status);
+        }
+    };
 
     let jwks = jwk_manager
         .get_jwks()
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let header = decode_header(token).map_err(|_| StatusCode::BAD_REQUEST)?;
-    let kid = header.kid.ok_or(StatusCode::BAD_REQUEST)?;
-    let jwk = jwks
-        .keys
-        .iter()
-        .find(|k| k.kid == kid)
-        .ok_or(StatusCode::UNAUTHORIZED)?;
+    let header = match decode_header(token) {
+        Ok(h) => {
+            info!("decoded JWT header");
+            h
+        }
+        Err(_) => {
+            warn!("failed to decode JWT header");
+            return Err(StatusCode::BAD_REQUEST);
+        }
+    };
+
+    let kid = header.kid.ok_or_else(|| {
+        warn!("no kid in JWT header");
+        StatusCode::BAD_REQUEST
+    })?;
+
+    let jwk = match jwks.keys.iter().find(|k| k.kid == kid) {
+        Some(k) => {
+            info!(kid = %kid, "found matching JWK");
+            k
+        }
+        None => {
+            warn!(kid = %kid, "no matching JWK found");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+    };
 
     let mut validation = Validation::new(Algorithm::RS256);
     validation.set_required_spec_claims(&[
@@ -193,8 +228,16 @@ pub async fn verify_jwt(
     let decoding_key = DecodingKey::from_rsa_components(&jwk.n, &jwk.e)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    let token_data = decode::<CognitoClaims>(token, &decoding_key, &validation)
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let token_data = match decode::<CognitoClaims>(token, &decoding_key, &validation) {
+        Ok(data) => {
+            info!(sub = %data.claims.sub, "token validated successfully");
+            data
+        }
+        Err(_) => {
+            warn!("token validation failed");
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+    };
 
     // Additional custom validations.
     if token_data.claims.token_use != "access" {
