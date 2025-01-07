@@ -1,6 +1,11 @@
 use anyhow::{Context, Result};
-use axum::{extract::Extension, extract::Json, http::StatusCode, response::IntoResponse};
+use axum::{
+    extract::{Extension, Json},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use serde_json::json;
+use tracing::{error, info, instrument};
 
 use crate::{
     aws,
@@ -17,28 +22,45 @@ pub async fn handle_health() -> impl IntoResponse {
     (StatusCode::OK, Json(json!({ "status": "healthy" }))).into_response()
 }
 
+#[derive(serde::Serialize)]
+struct ApiResponse<T> {
+    data: Option<T>,
+    error: Option<String>,
+}
+
+#[instrument(
+    name = "handle_translate",
+    fields(user.id = %claims.sub, text.length = %payload.text.len()),
+    skip_all,
+)]
 pub async fn handle_translate(
     Extension(claims): Extension<CognitoClaims>,
     Json(payload): Json<TranslationRequest>,
 ) -> impl IntoResponse {
     match process_translation(&payload.text).await {
         Ok(response) => {
-            tracing::info!("processing request from {}", claims.sub);
-            (StatusCode::OK, Json(response)).into_response()
+            info!("processing request from {}", claims.sub);
+            (
+                StatusCode::OK,
+                Json(ApiResponse {
+                    data: Some(response),
+                    error: None,
+                }),
+            )
         }
         Err(e) => {
             // Log the full error chain.
-            tracing::error!(
+            error!(
                 "Failed to process translation. Error chain: \n{:?}",
                 e.chain().collect::<Vec<_>>()
             );
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({
-                    "error": "Failed to create translation response"
-                })),
+                Json(ApiResponse {
+                    data: None,
+                    error: Some("Failed to create translation response".to_string()),
+                }),
             )
-                .into_response()
         }
     }
 }
