@@ -39,10 +39,10 @@ enum Commands {
         #[arg(long, short, env = "APP_REQ_TIMEOUT", default_value_t = 60)]
         request_timeout: u64,
 
-        #[arg(long, short, env = "APP_USER_POOL")]
+        #[arg(long, env = "APP_USER_POOL")]
         cognito_user_pool: String,
 
-        #[arg(long, short, env = "APP_CLIENT_ID")]
+        #[arg(long, env = "APP_CLIENT_ID")]
         cognito_client_id: String,
     },
 }
