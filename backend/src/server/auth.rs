@@ -201,7 +201,12 @@ pub async fn verify_jwt(
 
     let jwk = match jwks.keys.iter().find(|k| k.kid == kid) {
         Some(k) => {
-            info!(kid = %kid, "found matching JWK");
+            info!(
+                kid = %kid,
+                key_use = %k.r#use,
+                key_alg = %k.alg,
+                "found matching JWK"
+            );
             k
         }
         None => {
