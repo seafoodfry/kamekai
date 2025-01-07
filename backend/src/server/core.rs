@@ -135,7 +135,7 @@ pub async fn run_server(
         ));
 
     let app = Router::new()
-        .nest("/", protected_routes)
+        .merge(protected_routes)
         .route("/healthz", get(handle_health))
         .layer(cors) // Need to respond to preflight requests before other middleware interferes/changes headers.
         .layer(TimeoutLayer::new(Duration::from_secs(request_timeout)))

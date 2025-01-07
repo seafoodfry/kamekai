@@ -23,7 +23,7 @@ help:  ## Display this help message
 ##@ Local Development.
 .PHONY: build-dev
 build-dev: qa ## Build the dev container image
-	docker build --target builder -t $(IMG)-dev .
+	docker build --target dev -t $(IMG)-dev .
 
 .PHONY: debug
 debug: build-dev  ## Run the dev container

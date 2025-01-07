@@ -236,7 +236,7 @@ impl TranslationResponse {
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct TranslationRequest {
     pub text: String,
 }

@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
+use std::env;
 
+use backend::otel;
 use backend::server::run_server;
 use backend::Language;
 use backend::{create_conversation, AppError};
@@ -37,10 +39,10 @@ enum Commands {
         #[arg(long, short, env = "APP_REQ_TIMEOUT", default_value_t = 60)]
         request_timeout: u64,
 
-        #[arg(long, short, env = "APP_USER_POOL")]
+        #[arg(long, env = "APP_USER_POOL")]
         cognito_user_pool: String,
 
-        #[arg(long, short, env = "APP_CLIENT_ID")]
+        #[arg(long, env = "APP_CLIENT_ID")]
         cognito_client_id: String,
     },
 }
@@ -61,7 +63,11 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             cognito_user_pool,
             cognito_client_id,
         }) => {
-            run_server(
+            let honeycomb_api_key = env::var("HONEYCOMB_API_KEY")
+                .map_err(|e| AppError::Server(format!("HONEYCOMB_API_KEY is empty: {}", e)))?;
+            otel::init_tracer(honeycomb_api_key).map_err(AppError::OpenTelemetry)?;
+
+            let server_result = run_server(
                 host,
                 port,
                 enable_ansi,
@@ -69,8 +75,9 @@ async fn run(cli: Cli) -> Result<(), AppError> {
                 cognito_user_pool,
                 cognito_client_id,
             )
-            .await
-            .map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
+            .await;
+            otel::shutdown_telemetry();
+            server_result.map_err(|e| AppError::Server(format!("Error on server: {:#?}", e)))?;
         }
         None => {
             println!("No subcommand provided. Run with the -h flag to see usage.");
