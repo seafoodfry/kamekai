@@ -26,7 +26,10 @@ interface Translation {
 }
 
 interface TranslationResponse {
-  translations: Translation[];
+  data: {
+    translations: Translation[];
+  } | null;
+  error: string | null;
 }
 
 interface TextProcessingProps {
@@ -65,8 +68,17 @@ export const TextProcessing: React.FC<TextProcessingProps> = ({ text, onBack }) 
           throw new Error(`Failed to translate (${response.status})`);
         }
 
-        const data = (await response.json()) as TranslationResponse;
-        setTranslations(data.translations);
+        const apiResponse = (await response.json()) as TranslationResponse;
+
+        if (apiResponse.error) {
+          throw new Error(apiResponse.error);
+        }
+
+        if (!apiResponse.data) {
+          throw new Error('No data received from translation service');
+        }
+
+        setTranslations(apiResponse.data.translations);
         setError(null);
       } catch (err) {
         setError(`Failed to connect to translation service: ${err}`);

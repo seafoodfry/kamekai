@@ -6,7 +6,7 @@ module "build_box" {
 
   name              = "build"
   ami               = "ami-079cb33ef719a7b78"
-  type              = "t3.large"
+  type              = "t3.xlarge"
   security_group_id = aws_security_group.ssh.id
   subnet_id         = module.vpc.public_subnets[0]
   ec2_key_name      = var.ec2_key_name

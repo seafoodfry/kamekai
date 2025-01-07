@@ -16,7 +16,7 @@ To clean up
 To test the app
 ```sh
 curl https://api.seafoodfry.ninja/translate -X POST -H "Content-Type: application/json" \
-    -d '{"text":"meant to be"}' | jq .
+    -H "Authorization: Bearer $TOKEN" -d '{"text":"meant to be"}' | jq .
 ```
 
 To copy things:
