@@ -233,8 +233,8 @@ pub async fn verify_jwt(
             info!(sub = %data.claims.sub, "token validated successfully");
             data
         }
-        Err(_) => {
-            warn!("token validation failed");
+        Err(e) => {
+            warn!(error = %e, "token validation failed with error");
             return Err(StatusCode::UNAUTHORIZED);
         }
     };
