@@ -40,21 +40,13 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({ error, onBack }) => {
               {/* Glitchy mouth */}
               <path d="M14 24 l2 2 l2 -2 l2 2 l2 -2 l2 2 l2 -2" />
 
-              {/* Circuit lines */}
-              <line x1="8" y1="20" x2="12" y2="20" />
-              <line x1="28" y1="20" x2="32" y2="20" />
-
               {/* Error symbols */}
-              <text x="14" y="12" fontSize="3" fill="currentColor">
+              {/* <text x="14" y="12" fontSize="3" fill="currentColor">
                 ?
               </text>
               <text x="24" y="12" fontSize="3" fill="currentColor">
                 !
-              </text>
-
-              {/* Static effect lines */}
-              <line x1="10" y1="30" x2="14" y2="30" strokeDasharray="1,1" />
-              <line x1="26" y1="30" x2="30" y2="30" strokeDasharray="1,1" />
+              </text> */}
             </svg>
           </div>
         </div>
