@@ -7,7 +7,7 @@ edition = "2021"
 anyhow = "1.0"
 aws-config = { version = "1.5.12", features = ["behavior-version-latest"] }
 aws-sdk-sts = "1.52.0"
-aws-sdk-bedrockruntime = "1.66.0"
+aws-sdk-bedrockruntime = "1.67.0"
 axum = "0.8"
 chrono = "0.4.39"
 clap = { version = "4.5.23", features = ["derive", "env"] }
