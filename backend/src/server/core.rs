@@ -15,7 +15,7 @@ use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{info_span, Span};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+//use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use super::auth::{verify_jwt, JwkManager};
 use super::handlers::{handle_health, handle_translate};
@@ -82,34 +82,10 @@ async fn shutdown_signal() {
 pub async fn run_server(
     host: String,
     port: u16,
-    enable_ansi: bool,
     request_timeout: u64,
     cognito_user_pool: String,
     cognito_client_id: String,
 ) -> Result<()> {
-    // Initialize tracing.
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                // axum logs rejections from built-in extractors with the `axum::rejection`
-                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events.
-                format!(
-                    "{}=debug,tower_http=info,axum::rejection=trace",
-                    env!("CARGO_CRATE_NAME")
-                )
-                .into()
-            }),
-        )
-        .with(
-            tracing_subscriber::fmt::layer()
-                .with_line_number(true)
-                .with_ansi(enable_ansi)
-                .with_file(true)
-                .with_thread_ids(true)
-                .with_thread_names(true),
-        )
-        .init();
-
     // build our application with our routes.
     let cors = CorsLayer::new()
         .allow_origin([
