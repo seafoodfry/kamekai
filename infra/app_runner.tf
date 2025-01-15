@@ -8,16 +8,17 @@ resource "aws_apprunner_service" "kamekai" {
 
     image_repository {
       image_repository_type = "ECR"
-      image_identifier      = "${aws_ecr_repository.kamekai.repository_url}:2.0.0-bf81616e"
+      image_identifier      = "${aws_ecr_repository.kamekai.repository_url}:2.0.0-c538d82b"
 
       image_configuration {
         port = "8080"
 
         runtime_environment_variables = {
-          "APP_ENABLE_ANSI_LOGS" = "false"
-          "APP_USER_POOL"        = aws_cognito_user_pool.kamekai.endpoint
-          "APP_CLIENT_ID"        = aws_cognito_user_pool_client.desktop_client.id
-          "HONEYCOMB_API_KEY"    = var.honeycomb_api_key
+          "APP_ENABLE_ANSI_LOGS"        = "false"
+          "APP_USER_POOL"               = aws_cognito_user_pool.kamekai.endpoint
+          "APP_CLIENT_ID"               = aws_cognito_user_pool_client.desktop_client.id
+          "HONEYCOMB_API_KEY"           = var.honeycomb_api_key
+          "OTEL_EXPORTER_OTLP_ENDPOINT" = "https://api.honeycomb.io"
         }
       }
     }

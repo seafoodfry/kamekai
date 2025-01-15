@@ -12,7 +12,11 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 const SVC_NAME: &str = "kamekai";
 
 /// Initialize OpenTelemetry with Honeycomb OTLP exporter.
-pub fn init_tracer(honeycomb_api_key: String, enable_ansi: bool) -> Result<()> {
+pub fn init_tracer(
+    honeycomb_api_key: String,
+    otel_endpoint: String,
+    enable_ansi: bool,
+) -> Result<()> {
     // Set propagator.
     global::set_text_map_propagator(opentelemetry_sdk::propagation::TraceContextPropagator::new());
 
@@ -25,7 +29,7 @@ pub fn init_tracer(honeycomb_api_key: String, enable_ansi: bool) -> Result<()> {
     // Create OTLP exporter for Honeycomb.
     let exporter = opentelemetry_otlp::SpanExporter::builder()
         .with_tonic() // Use tonic as the gRPC layer.
-        .with_endpoint("https://api.honeycomb.io:443")
+        .with_endpoint(otel_endpoint)
         .with_timeout(Duration::from_secs(3))
         .with_metadata(create_honeycomb_headers(honeycomb_api_key)?)
         .build()?;
