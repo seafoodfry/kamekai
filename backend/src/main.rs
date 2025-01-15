@@ -65,7 +65,10 @@ async fn run(cli: Cli) -> Result<(), AppError> {
         }) => {
             let honeycomb_api_key = env::var("HONEYCOMB_API_KEY")
                 .map_err(|e| AppError::Server(format!("HONEYCOMB_API_KEY is empty: {}", e)))?;
-            otel::init_tracer(honeycomb_api_key, enable_ansi).map_err(AppError::OpenTelemetry)?;
+            let otel_endpoint = env::var("OTEL_EXPORTER_OTLP_ENDPOINT")
+                .unwrap_or("api.honeycomb.io:443".to_string());
+            otel::init_tracer(honeycomb_api_key, otel_endpoint, enable_ansi)
+                .map_err(AppError::OpenTelemetry)?;
 
             let server_result = run_server(
                 host,
