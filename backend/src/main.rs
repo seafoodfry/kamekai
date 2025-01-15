@@ -1,4 +1,6 @@
 use clap::{Parser, Subcommand};
+use opentelemetry::global;
+use opentelemetry::trace::Tracer;
 use std::env;
 
 use backend::otel;
@@ -70,6 +72,10 @@ async fn run(cli: Cli) -> Result<(), AppError> {
             otel::init_tracer(honeycomb_api_key, otel_endpoint, enable_ansi)
                 .map_err(AppError::OpenTelemetry)?;
 
+            let tracer = global::tracer("my-component");
+            tracer.in_span("doing_work", |_cx| {
+                print!("test span");
+            });
             let server_result = run_server(
                 host,
                 port,
