@@ -10,7 +10,7 @@ aws-sdk-sts = "1.54.1"
 aws-sdk-bedrockruntime = "1.67.0"
 axum = "0.8"
 chrono = "0.4.39"
-clap = { version = "4.5.26", features = ["derive", "env"] }
+clap = { version = "4.5.27", features = ["derive", "env"] }
 jsonwebtoken = "9"
 opentelemetry = "0.27"
 opentelemetry-otlp = { version = "0.27", features = ["trace", "grpc-tonic"] }
