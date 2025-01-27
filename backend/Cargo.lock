@@ -210,9 +210,9 @@ dependencies = [
 
 [[package]]
 name = "aws-sdk-bedrockruntime"
-version = "1.67.0"
+version = "1.71.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45b1eba5f7928b332df907ad9800dac0f53248156b65bd428f07df8a827e47f7"
+checksum = "d3df63bb064f19fc4b5af78db35ad514b08a54e2fe3109d049f9831a9afec851"
 dependencies = [
  "aws-credential-types",
  "aws-runtime",
