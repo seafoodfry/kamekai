@@ -8,6 +8,8 @@ locals {
 }
 
 module "vpc" {
+  count = 0
+
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.16"
 
@@ -25,9 +27,10 @@ module "vpc" {
 }
 
 resource "aws_security_group" "ssh" {
+  count       = 0
   name        = "ssh"
   description = "Allow SSH from a specific IP"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = module.vpc[0].vpc_id
 
   ingress {
     description = "SSH"
