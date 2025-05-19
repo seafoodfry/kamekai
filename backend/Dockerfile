@@ -1,5 +1,5 @@
 # See https://www.debian.org/releases/
-FROM rust:1.84-bookworm AS dev
+FROM rust:1.87-bookworm AS dev
 
 ARG APP_NAME=backend
 
@@ -28,7 +28,7 @@ RUN cargo build
 ######################
 # Prod builder stage #
 ######################
-FROM rust:1.84-bookworm AS builder
+FROM rust:1.87-bookworm AS builder
 
 ARG APP_NAME=backend
 
