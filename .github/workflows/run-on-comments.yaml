@@ -21,7 +21,7 @@ jobs:
     outputs:
       pr: ${{ steps.pr.outputs.data }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # See
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs
       - name: Dump GitHub context
@@ -56,7 +56,7 @@ jobs:
 
       - name: Dump PR ref
         run: "echo checking out ref: '${{ fromJson(steps.pr.outputs.data).head.ref }}'"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ fromJson(steps.pr.outputs.data).head.ref }}
 
@@ -79,7 +79,7 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ fromJson(needs.setup.outputs.pr).head.ref }}
       - name: Check ref
